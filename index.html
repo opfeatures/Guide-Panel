@@ -665,6 +665,7 @@ body.admin .treeadmin{display:flex}
  </section>
 
  <section class="view" id="view-req">
+  <div class="offbar" id="offbar2"><span class="ic2">⚠</span><span id="offtx2"></span><span class="rt" id="offrt2">Спробувати ще</span></div>
   <div class="adminbar">
    <span class="at">режим адміна</span>
    <span class="abtn" id="exp">⇣ Експорт JSON</span>
@@ -813,6 +814,11 @@ function initTree(d,quiet){
    +'<h3>Обери категорію</h3><div class="crumbs">Клікни будь-який рядок у дереві, щоб побачити повний шлях, family та перелік обовʼязкових і опційних атрибутів.</div></div>';}
 }
 const nf0=x=>x.toLocaleString('uk-UA');
+/* стан завантаження; викликається і до того, як оголошено GH-модуль */
+function ghWait(){
+ try{return GHTRIED?'даних немає':'завантажую дані…';}
+ catch(e){return 'завантажую дані…';}   // GH-модуль оголошено нижче
+}
 function treeStats(){
  const lf=N.filter((n,i)=>!KIDS(i).length).length;
  const wf=N.filter(n=>n.f).length;
@@ -822,18 +828,22 @@ function treeStats(){
 }
 function renderMeta(){
  const s=treeStats();
- if(!s.total)return;   // лишаємо те, що прийшло з файлу, поки дані не завантажились
  const m=document.getElementById('hmeta');
- if(m&&!s.total){m.innerHTML='<span>завантажую дані…</span>';}
+ if(m&&!s.total){m.innerHTML='<span>'+ghWait()+'</span>';}
  else if(m)m.innerHTML=['<span>'+nf0(s.total)+' категорій</span>','<span>'+s.levels+' рівнів</span>',
   '<span>'+nf0(s.leaf)+' leaf</span>','<span>'+nf0(s.fam)+' з family</span>',
   '<span>'+nf0(s.attrs)+' унікальних атрибутів</span>'].join('');
  const t=document.getElementById('treets');
- if(t)t.textContent=s.total?(nf0(s.total)+' категорій · '+s.levels+' рівнів'):'завантажую…';
+ if(t)t.textContent=s.total?(nf0(s.total)+' категорій · '+s.levels+' рівнів'):ghWait();
 }
 function renderChips(){
- if(!N.length)return;
- const box=document.getElementById('l1chips');
+ const box0=document.getElementById('l1chips');
+ if(!N.length){
+  if(box0)box0.innerHTML='<span class="chip" style="opacity:.5;cursor:default">—</span>';
+  ['fr-lvl','fr-fam','fr-attr'].forEach(id=>{const e=document.getElementById(id);if(e)e.innerHTML='';});
+  return;
+ }
+ const box=box0;
  if(box){
   let h='<span class="chip'+(F.l1==='ALL'?' on':'')+'" data-fk="l1" data-fv="ALL">Усі напрями <span class="cnt">'+D.roots.length+'</span></span>';
   D.roots.forEach(i=>{let c=0;const st=[i];while(st.length){const x=st.pop();c++;KIDS(x).forEach(k=>st.push(k));}
@@ -2440,6 +2450,7 @@ const GHDEF={
 const GHPATH={tree:'data/tree.json',req:'data/requirements.json',auth:'auth.json'};
 const KCFG='mm_gh_cfg_v1',KTOK='mm_gh_token_v1',KTREE='mm_cache_tree_v1',KREQ='mm_cache_req_v1';
 let GHC=JSON.parse(JSON.stringify(GHDEF));
+let GHTRIED=false;
 let GHTOK='',GHSHA={},GHSRC={tree:'вшитий знімок',req:'вшитий стандарт'},GHERR='';
 const ls={
  g(k){try{return localStorage.getItem(k);}catch(e){return null;}},
@@ -2516,12 +2527,16 @@ function ghPill(state,text){
 }
 function ghStatus(){
  const off=document.getElementById('offbar');
- if(GHERR){ghPill('err','GitHub: '+GHERR);
-  off.classList.add('on');
-  document.getElementById('offtx').textContent='Не вдалось прочитати дані з GitHub ('+GHERR+'). Показано: '+GHSRC.tree+'.';
- }else{off.classList.remove('on');
-  ghPill(GHSRC.tree.indexOf('GitHub')===0?'ok':'warn',GHSRC.tree+' · вимоги: '+GHSRC.req);
- }
+ const off2=document.getElementById('offbar2');
+ const bar=(el,tx,msg)=>{if(!el)return;el.classList.toggle('on',!!msg);
+   if(msg)document.getElementById(tx).textContent=msg;};
+ const stale=x=>x.indexOf('GitHub')!==0;
+ bar(off,'offtx',stale(GHSRC.tree)?('Дерево категорій не з GitHub: '+GHSRC.tree
+   +(GHERR?' · '+GHERR:'')):'');
+ bar(off2,'offtx2',stale(GHSRC.req)?('Вимоги не з GitHub: '+GHSRC.req
+   +(GHERR?' · '+GHERR:'')):'');
+ if(GHERR)ghPill('err','GitHub: '+GHERR);
+ else ghPill(stale(GHSRC.tree)||stale(GHSRC.req)?'warn':'ok',GHSRC.tree+' · вимоги: '+GHSRC.req);
  const st=document.getElementById('trst');
  if(st)st.textContent=GHSRC.tree;
 }
@@ -2683,6 +2698,8 @@ async function ghBoot(){
  await ghFixBranch('pub');
  if(GHTOK)await ghFixBranch('prv');
  await Promise.all([ghLoadTree(),ghLoadReq()]);
+ GHTRIED=true;
+ if(!N.length){renderMeta();renderChips();render();}
  ghStatus();
 }
 
@@ -2870,7 +2887,7 @@ document.addEventListener('click',e=>{
  if(e.target.closest('#cf-forget')){GHTOK='';ls.d(KTOK);ADMIN=false;
   try{sessionStorage.removeItem('mm_adm_s');}catch(err){}
   applyAdmin();renderReq();$id('cf-tok').textContent='—';ghStatus();return;}
- if(e.target.closest('#offrt')){GHERR='';ghBoot();return;}
+ if(e.target.closest('#offrt')||e.target.closest('#offrt2')){GHERR='';ghBoot();return;}
  if(e.target.closest('#trpull')){GHERR='';ghBoot();return;}
  if(e.target.closest('#trreset')){initTree(BAKED_TREE);GHSRC.tree='вшитий знімок';ghStatus();return;}
  if(e.target.classList&&e.target.classList.contains('ovl'))e.target.classList.remove('on');
