@@ -516,7 +516,7 @@ body.admin .b-g{border-style:dashed}
 @media(max-width:640px){.exppop{width:calc(100vw - 48px);right:auto;left:0}}
 
 /* ---- CSS: GitHub-синхронізація і вхід адміна ---- */
-.ghpill{position:fixed;top:15px;right:172px;z-index:70;display:flex;align-items:center;gap:7px;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:6px 11px;font-size:11.5px;font-weight:700;color:#4a4f5c;box-shadow:0 3px 14px rgba(32,36,46,.08);cursor:pointer;user-select:none;max-width:290px}
+.ghpill{position:fixed;top:15px;right:172px;z-index:70;display:none;align-items:center;gap:7px;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:6px 11px;font-size:11.5px;font-weight:700;color:#4a4f5c;box-shadow:0 3px 14px rgba(32,36,46,.08);cursor:pointer;user-select:none;max-width:290px}
 .ghpill:hover{border-color:#dcd6f7}
 .ghpill .d{width:7px;height:7px;border-radius:50%;background:#cfd3dd;flex-shrink:0}
 .ghpill.ok .d{background:#16a34a}
@@ -525,6 +525,7 @@ body.admin .b-g{border-style:dashed}
 .ghpill.busy .d{background:var(--purple);animation:ghp 1s infinite}
 @keyframes ghp{0%,100%{opacity:1}50%{opacity:.25}}
 .ghpill .tx{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+body.admin .ghpill{display:flex}
 @media(max-width:1000px){.ghpill{display:none}}
 
 .ovl{display:none;position:fixed;inset:0;z-index:120;background:rgba(20,22,30,.5);backdrop-filter:blur(3px);align-items:flex-start;justify-content:center;padding:70px 20px 20px;overflow:auto}
@@ -753,7 +754,6 @@ body.admin .treeadmin{display:flex}
  <div class="err" id="au-err"></div>
  <div class="okmsg" id="au-ok"></div>
  <div class="acts"><span class="b" id="au-x">Скасувати</span><button class="b pri" id="au-go">Увійти</button></div>
- <div class="lnk" id="au-cfg">Налаштування репозиторіїв</div>
 </div></div>
 
 <div class="ovl" id="ovl-cfg"><div class="dlg">
@@ -2685,6 +2685,7 @@ async function auSubmit(){
 
 /* ---- налаштування ---- */
 function openCfg(){
+ if(!ADMIN)return;   // глядачі цього не бачать
  $id('cf-pub').value=GHC.pub.slug;$id('cf-pubb').value=GHC.pub.branch;
  $id('cf-prv').value=GHC.prv.slug;$id('cf-prvb').value=GHC.prv.branch;
  $id('cf-tok').innerHTML=GHTOK?'<code>'+esc(GHTOK.slice(0,11))+'…</code>':'—';
@@ -2725,7 +2726,6 @@ document.addEventListener('click',e=>{
  if(e.target.closest('#ghpill')){openCfg();return;}
  if(e.target.closest('#au-x')){$id('ovl-auth').classList.remove('on');return;}
  if(e.target.closest('#au-go')){auSubmit();return;}
- if(e.target.closest('#au-cfg')){$id('ovl-auth').classList.remove('on');openCfg();return;}
  if(e.target.closest('#cf-x')){$id('ovl-cfg').classList.remove('on');return;}
  if(e.target.closest('#cf-save')){saveCfg();return;}
  if(e.target.closest('#cf-forget')){GHTOK='';ls.d(KTOK);ADMIN=false;
