@@ -573,6 +573,19 @@ body.admin .treeadmin{display:flex}
 .offbar .rt{margin-left:auto;font-weight:800;cursor:pointer;white-space:nowrap}
 .offbar .rt:hover{text-decoration:underline}
 
+.dlg .diag{display:none;margin-top:10px;background:#f7f8fa;border:1px solid var(--line);border-radius:10px;padding:10px 11px;font-size:11.5px;line-height:1.55}
+.dlg .diag.on{display:block}
+.dlg .diag .dr{display:flex;gap:8px;align-items:flex-start;padding:3px 0}
+.dlg .diag .dr .s{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-weight:800;flex-shrink:0;min-width:30px}
+.dlg .diag .dr.g .s{color:#16a34a}
+.dlg .diag .dr.b .s{color:#e5484d}
+.dlg .diag .dr.y .s{color:#d98a04}
+.dlg .diag .dr .t2{color:#4a4f5c;word-break:break-all}
+.dlg .diag .hd{font-weight:800;color:var(--ink);margin:7px 0 2px}
+.dlg .diag .hd:first-child{margin-top:0}
+.dlg .probe{display:inline-block;margin-top:11px;font-size:12px;font-weight:700;color:var(--purple);cursor:pointer}
+.dlg .probe:hover{text-decoration:underline}
+
 </style></head><body>
 <div class="ghpill" id="ghpill" title="Стан синхронізації з GitHub"><span class="d"></span><span class="tx" id="ghtx">перевіряю…</span></div>
 <div class="adminbtn" id="adminbtn"><span class="dot"></span><span class="lab">Адмін<span class="sub" id="astate">перегляд</span></span></div>
@@ -758,17 +771,19 @@ body.admin .treeadmin{display:flex}
 
 <div class="ovl" id="ovl-cfg"><div class="dlg">
  <h3>Репозиторії</h3>
- <div class="sub">Де живуть дані, вимоги та хеш пароля. Зміни зберігаються лише в цьому браузері.</div>
- <div class="fl"><label>Публічний репозиторій — дані та вимоги</label>
+ <div class="sub"><code>data/tree.json</code> і <code>data/requirements.json</code> шукаються в обох репозиторіях — спершу в публічному. Зміни налаштувань живуть лише в цьому браузері.</div>
+ <div class="fl"><label>Публічний репозиторій</label>
   <div class="cfgrow"><div><input type="text" id="cf-pub" class="mono" placeholder="owner/repo"></div><div style="max-width:118px"><input type="text" id="cf-pubb" class="mono" placeholder="main"></div></div>
-  <div class="hint">Читається без токена. Файли: <code>data/tree.json</code>, <code>data/requirements.json</code></div></div>
- <div class="fl"><label>Приватний репозиторій — хеш пароля</label>
+  <div class="hint">Читається без токена — тут дані бачать усі.</div></div>
+ <div class="fl"><label>Приватний репозиторій</label>
   <div class="cfgrow"><div><input type="text" id="cf-prv" class="mono" placeholder="owner/repo"></div><div style="max-width:118px"><input type="text" id="cf-prvb" class="mono" placeholder="main"></div></div>
-  <div class="hint">Читається лише з токеном. Файл: <code>auth.json</code></div></div>
+  <div class="hint">Лише з токеном. Тут завжди <code>auth.json</code> з хешем пароля.</div></div>
  <div class="fl"><label>Стан</label>
   <div class="kv2"><span>токен у браузері</span><span id="cf-tok">—</span></div>
   <div class="kv2"><span>дерево</span><span id="cf-tr">—</span></div>
   <div class="kv2"><span>вимоги</span><span id="cf-rq">—</span></div>
+  <div class="diag" id="cf-diag"></div>
+  <span class="probe" id="cf-probe">↻ Перевірити зʼєднання</span>
  </div>
  <div class="err" id="cf-err"></div>
  <div class="acts"><span class="b" id="cf-x">Закрити</span><button class="b pri" id="cf-save">Зберегти</button></div>
@@ -1088,7 +1103,7 @@ async function pushReq(){
  const s=document.getElementById('savedmark');
  try{
   const txt=JSON.stringify(B,null,1);
-  await ghWrite('pub',GHPATH.req,txt,'вимоги: '+B.length+' блоків');
+  await ghWrite(GHFILE.req[0],GHFILE.req[1],txt,'вимоги: '+B.length+' блоків');
   GHSRC.req='GitHub · '+B.length+' блоків';GHERR='';ghStatus();
   s.textContent='на GitHub ✓';clearTimeout(stimer);stimer=setTimeout(()=>{s.textContent='';},2000);
  }catch(e){
@@ -2459,9 +2474,10 @@ async function ghRead(k,path,needTok){
  const h={'Accept':'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28'};
  if(GHTOK)h.Authorization='Bearer '+GHTOK;
  if(needTok&&!GHTOK)throw new Error('потрібен токен');
- let r;
- try{r=await fetch(ghApi(k,path),{headers:h,cache:'no-store'});}
- catch(e){throw new Error('немає мережі');}
+ let r;const u=ghApi(k,path);
+ try{r=await fetch(u,{headers:h,cache:'no-store'});}
+ catch(e){GHDIAG[k+':'+path]={status:0,url:u,branch:GHC[k].branch};throw new Error('немає мережі');}
+ GHDIAG[k+':'+path]={status:r.status,url:u,branch:GHC[k].branch};
  if(r.status===404)return {missing:true};
  if(r.ok){const j=await r.json();GHSHA[k+':'+path]=j.sha;
   return {text:ghB64d(j.content),sha:j.sha};}
@@ -2566,16 +2582,80 @@ function ghNormTree(any){
  return p;
 }
 
+
+/* ==================================================================
+   ДІАГНОСТИКА GITHUB: гілка, шлях, статус кожного запиту
+   ================================================================== */
+let GHDIAG={};                  // ключ -> {status,url,branch}
+let GHREPO={};                  // 'pub'|'prv' -> {status,branch,priv}
+/* де шукати кожен файл: [репозиторій, шлях]. Публічний першим — його видно без токена */
+const GHTRY={
+ tree:[['pub','data/tree.json'],['prv','data/tree.json'],['pub','tree.json'],['prv','tree.json']],
+ req :[['pub','data/requirements.json'],['prv','data/requirements.json'],
+       ['pub','requirements.json'],['prv','requirements.json']]
+};
+let GHFILE={tree:['pub',GHPATH.tree],req:['pub',GHPATH.req]};   // де реально знайшлись
+
+async function ghRepoInfo(k){
+ const h={'Accept':'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28'};
+ if(GHTOK)h.Authorization='Bearer '+GHTOK;
+ let r;
+ try{r=await fetch('https://api.github.com/repos/'+GHC[k].slug,{headers:h,cache:'no-store'});}
+ catch(e){return GHREPO[k]={status:0,err:'немає мережі'};}
+ if(!r.ok)return GHREPO[k]={status:r.status};
+ const j=await r.json();
+ return GHREPO[k]={status:200,branch:j.default_branch,priv:!!j.private,slug:j.full_name};
+}
+/* якщо налаштована гілка не та, що дефолтна — беремо дефолтну */
+async function ghFixBranch(k){
+ const i=await ghRepoInfo(k);
+ if(i.status===200&&i.branch&&i.branch!==GHC[k].branch){
+  GHDIAG['branch:'+k]={from:GHC[k].branch,to:i.branch};
+  GHC[k].branch=i.branch;
+  ls.s(KCFG,JSON.stringify(GHC));
+  return true;
+ }
+ return false;
+}
+/* пробуємо обидва репозиторії і обидва шляхи */
+async function ghReadAny(which){
+ let last=null;
+ const list=GHTRY[which];
+ for(let i=0;i<list.length;i++){
+  const k=list[i][0],pt=list[i][1];
+  if(k==='prv'&&!GHTOK)continue;          // приватний без токена читати нічим
+  let r;
+  try{r=await ghRead(k,pt,false);}
+  catch(e){last=e;continue;}
+  if(!r.missing){r.k=k;r.path=pt;return r;}
+ }
+ if(last)throw last;
+ return {missing:true};
+}
+function ghWhy(which){
+ const list=GHTRY[which]||[];
+ const st=list.map(x=>(GHDIAG[x[0]+':'+x[1]]||{}).status).filter(x=>x!==undefined);
+ if(!GHTOK&&st.every(x=>x===404))
+  return 'у публічному репо файла немає, а приватний без токена не прочитати';
+ if(st.indexOf(0)>=0&&!st.some(x=>x>0))return 'немає мережі';
+ if(st.indexOf(401)>=0)return 'токен недійсний';
+ if(st.indexOf(403)>=0)return 'ліміт запитів або немає прав';
+ if(st.length&&st.every(x=>x===404))
+  return 'файла немає в жодному з репозиторіїв (гілки '+GHC.pub.branch+' / '+GHC.prv.branch+')';
+ return st.length?('HTTP '+st[0]):'не перевірялось';
+}
+
 /* ---- завантаження при старті ---- */
 const BAKED_TREE=D;
 async function ghLoadTree(){
  try{
-  const r=await ghRead('pub',GHPATH.tree,false);
-  if(r.missing){GHSRC.tree='вшитий знімок · у репо немає '+GHPATH.tree;return;}
+  const r=await ghReadAny('tree');
+  if(r.missing){GHSRC.tree='вшитий знімок · '+ghWhy('tree');return;}
+  GHFILE.tree=[r.k,r.path];
   const p=ghNormTree(r.text);
   ls.s(KTREE,JSON.stringify(p));
   initTree(p);
-  GHSRC.tree='GitHub'+(r.stale?' · з кешу CDN':'')+' · '+p.nodes.length+' категорій';
+  GHSRC.tree='GitHub · '+GHC[r.k].slug.split('/')[1]+'/'+r.path+' · '+p.nodes.length+' категорій';
  }catch(e){
   GHERR=e.message;
   const c=ls.g(KTREE);
@@ -2584,12 +2664,13 @@ async function ghLoadTree(){
 }
 async function ghLoadReq(){
  try{
-  const r=await ghRead('pub',GHPATH.req,false);
-  if(r.missing){GHSRC.req='вшитий стандарт · у репо немає '+GHPATH.req;return;}
+  const r=await ghReadAny('req');
+  if(r.missing){GHSRC.req='вшитий стандарт · '+ghWhy('req');return;}
+  GHFILE.req=[r.k,r.path];
   const b=JSON.parse(r.text);
   if(!Array.isArray(b))throw new Error('очікується масив блоків');
   B=b;ls.s(KREQ,r.text);ls.s(LSK,r.text);
-  GHSRC.req='GitHub · '+b.length+' блоків';
+  GHSRC.req='GitHub · '+GHC[r.k].slug.split('/')[1]+'/'+r.path+' · '+b.length+' блоків';
   renderReq();
  }catch(e){
   if(!GHERR)GHERR=e.message;
@@ -2598,6 +2679,9 @@ async function ghLoadReq(){
 }
 async function ghBoot(){
  ghPill('busy','читаю GitHub…');
+ GHDIAG={};
+ await ghFixBranch('pub');
+ if(GHTOK)await ghFixBranch('prv');
  await Promise.all([ghLoadTree(),ghLoadReq()]);
  ghStatus();
 }
@@ -2684,6 +2768,58 @@ async function auSubmit(){
 }
 
 /* ---- налаштування ---- */
+function ghSt(x){return x===200?'g':(x===0||x===undefined)?'y':'b';}
+function ghDiagHTML(){
+ const rows=[];
+ ['pub','prv'].forEach(k=>{
+  const ri=GHREPO[k]||{},lbl=k==='pub'?'Публічний':'Приватний';
+  rows.push('<div class="hd">'+lbl+' · '+esc(GHC[k].slug)+'</div>');
+  if(ri.status===undefined){rows.push('<div class="dr y"><span class="s">—</span><span class="t2">не перевірявся</span></div>');}
+  else{
+   rows.push('<div class="dr '+ghSt(ri.status)+'"><span class="s">'+(ri.status||'net')+'</span><span class="t2">'
+    +(ri.status===200?('гілка за замовчуванням: '+esc(ri.branch)+(ri.priv?' · репозиторій ПРИВАТНИЙ':' · публічний'))
+     :ri.status===404?'репозиторій не видно: приватний, інша назва або токен без доступу'
+     :ri.status===401?'токен недійсний'
+     :ri.status===403?'ліміт запитів або немає прав'
+     :ri.err||'помилка')+'</span></div>');
+   if(ri.status===200&&ri.branch!==GHC[k].branch)
+    rows.push('<div class="dr y"><span class="s">!</span><span class="t2">налаштована гілка «'+esc(GHC[k].branch)
+     +'», а в репо «'+esc(ri.branch)+'»</span></div>');
+  }
+  const paths=GHTRY.tree.concat(GHTRY.req).filter(x=>x[0]===k).map(x=>x[1])
+   .concat(k==='prv'?[GHPATH.auth]:[]);
+  paths.forEach(pt=>{
+   const d=GHDIAG[k+':'+pt];
+   if(!d)return;
+   rows.push('<div class="dr '+ghSt(d.status)+'"><span class="s">'+(d.status||'net')+'</span><span class="t2">'
+    +esc(pt)+' @ '+esc(d.branch)+'</span></div>');
+  });
+ });
+ const b=GHDIAG['branch:pub'];
+ if(b)rows.push('<div class="dr y"><span class="s">↻</span><span class="t2">гілку автоматично змінено з «'
+  +esc(b.from)+'» на «'+esc(b.to)+'»</span></div>');
+ return rows.join('');
+}
+async function ghProbe(){
+ const btn=$id('cf-probe');btn.textContent='перевіряю…';
+ GHDIAG={};GHREPO={};GHERR='';
+ await ghRepoInfo('pub');
+ if(GHTOK)await ghRepoInfo('prv');
+ const i=GHREPO.pub;
+ if(i.status===200&&i.branch&&i.branch!==GHC.pub.branch){
+  GHDIAG['branch:pub']={from:GHC.pub.branch,to:i.branch};
+  GHC.pub.branch=i.branch;ls.s(KCFG,JSON.stringify(GHC));
+  $id('cf-pubb').value=i.branch;
+ }
+ await Promise.all([ghLoadTree(),ghLoadReq()]);
+ if(GHTOK){try{await ghRead('prv',GHPATH.auth,true);}catch(e){}}
+ ghStatus();
+ $id('cf-tr').textContent=GHSRC.tree;
+ $id('cf-rq').textContent=GHSRC.req;
+ $id('cf-diag').innerHTML=ghDiagHTML();
+ $id('cf-diag').classList.add('on');
+ btn.textContent='↻ Перевірити зʼєднання';
+}
 function openCfg(){
  if(!ADMIN)return;   // глядачі цього не бачать
  $id('cf-pub').value=GHC.pub.slug;$id('cf-pubb').value=GHC.pub.branch;
@@ -2692,6 +2828,8 @@ function openCfg(){
  $id('cf-tr').textContent=GHSRC.tree;
  $id('cf-rq').textContent=GHSRC.req;
  $id('cf-err').classList.remove('on');
+ const dg=$id('cf-diag'),h=ghDiagHTML();
+ dg.innerHTML=h;dg.classList.toggle('on',!!h);
  $id('ovl-cfg').classList.add('on');
 }
 function saveCfg(){
@@ -2715,10 +2853,10 @@ async function trPush(file){
   const txt=await file.text();
   const p=ghNormTree(txt);
   st.textContent='розібрано '+p.nodes.length+' категорій, заливаю…';
-  await ghWrite('pub',GHPATH.tree,JSON.stringify(p),'tree: '+p.nodes.length+' категорій з '+file.name);
+  await ghWrite(GHFILE.tree[0],GHFILE.tree[1],JSON.stringify(p),'tree: '+p.nodes.length+' категорій з '+file.name);
   ls.s(KTREE,JSON.stringify(p));
   initTree(p);
-  GHSRC.tree='GitHub · '+p.nodes.length+' категорій';GHERR='';ghStatus();
+  GHSRC.tree='GitHub · '+GHC[GHFILE.tree[0]].slug.split('/')[1]+'/'+GHFILE.tree[1]+' · '+p.nodes.length+' категорій';GHERR='';ghStatus();
   st.textContent='✓ залито · '+p.nodes.length+' категорій';
  }catch(e){st.textContent='✕ '+e.message;}
 }
@@ -2728,6 +2866,7 @@ document.addEventListener('click',e=>{
  if(e.target.closest('#au-go')){auSubmit();return;}
  if(e.target.closest('#cf-x')){$id('ovl-cfg').classList.remove('on');return;}
  if(e.target.closest('#cf-save')){saveCfg();return;}
+ if(e.target.closest('#cf-probe')){ghProbe();return;}
  if(e.target.closest('#cf-forget')){GHTOK='';ls.d(KTOK);ADMIN=false;
   try{sessionStorage.removeItem('mm_adm_s');}catch(err){}
   applyAdmin();renderReq();$id('cf-tok').textContent='—';ghStatus();return;}
