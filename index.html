@@ -566,7 +566,7 @@ body.admin .treeadmin{display:flex}
 .treeadmin .abtn:hover{background:rgba(255,255,255,.24)}
 .treeadmin .abtn input{position:absolute;inset:0;opacity:0;cursor:pointer;font-size:0}
 .treeadmin .sp{flex:1}
-.treeadmin .st{font-size:11.5px;color:#9aa0b0;font-weight:700}
+.treeadmin .st{font-size:11.5px;color:#9aa0b0;font-weight:700;max-width:520px;line-height:1.45;text-align:right}
 .offbar{display:none;align-items:center;gap:9px;background:var(--amber-soft);border:1px solid #f3dfb4;border-radius:11px;padding:9px 13px;margin-bottom:15px;font-size:12.5px;color:#7a5b02;line-height:1.45}
 .offbar.on{display:flex}
 .offbar .ic2{font-size:15px}
@@ -592,7 +592,7 @@ body.admin .treeadmin{display:flex}
 <div class="shell">
 <aside class="sidenav">
  <div class="navcap">Навігація</div>
- <div class="tab on" data-tab="tree"><span class="tic">🗂</span><span><span class="tt">Дерево категорій</span><span class="ts" id="treets">2016 категорій · 6 рівнів</span></span></div>
+ <div class="tab on" data-tab="tree"><span class="tic">🗂</span><span><span class="tt">Дерево категорій</span><span class="ts" id="treets">2040 категорій · 6 рівнів</span></span></div>
  <div class="tab" data-tab="req"><span class="tic">📋</span><span><span class="tt">Вимоги</span><span class="ts">стандарти контенту</span></span></div>
  <div class="navsec" id="navsec"><div class="navlist" id="reqnav"></div></div>
  <div class="tab" data-tab="val"><span class="tic">🔍</span><span><span class="tt">Валідатор фіда</span><span class="ts">перевірка XML</span></span></div>
@@ -604,19 +604,19 @@ body.admin .treeadmin{display:flex}
  <div>
   <h1 id="pgtitle">Дерево категорій маркетплейсу</h1>
   <p id="pgsub">Повна іерархія категорій Akeneo з привʼязаними family та їхніми атрибутами. Клік на категорію — деталі праворуч; клік на вузол з дітьми — розгортання.</p>
-  <div class="meta" id="hmeta"><span>2016 категорій</span><span>6 рівнів</span><span>1638 leaf</span><span>1365 з family</span><span>7037 унікальних атрибутів</span><span>Знімок 25.08.2026</span></div>
+  <div class="meta" id="hmeta"><span>2040 категорій</span><span>6 рівнів</span><span>1655 leaf</span><span>1382 з family</span><span>7056 унікальних атрибутів</span><span>Знімок 26.08.2026</span></div>
  </div></div></header>
 
 <nav class="bar" id="filterbar"><div class="wrap">
- <div class="chgroup"><span class="cap">Напрям</span><span id="l1chips"><span class="chip on" data-fk="l1" data-fv="ALL">Усі напрями <span class="cnt">20</span></span><span class="chip" data-fk="l1" data-fv="computers_components">Комп&#x27;ютери та комплектуючі <span class="cnt">88</span></span><span class="chip" data-fk="l1" data-fv="household_appliances">Побутова техніка <span class="cnt">134</span></span><span class="chip" data-fk="l1" data-fv="electronics">Електроніка <span class="cnt">153</span></span><span class="chip" data-fk="l1" data-fv="zoo_products">Зоотовари <span class="cnt">129</span></span><span class="chip" data-fk="l1" data-fv="childrens_products">Дитячі товари <span class="cnt">179</span></span><span class="chip" data-fk="l1" data-fv="home">Все для дому <span class="cnt">161</span></span><span class="chip" data-fk="l1" data-fv="fashion">Одяг та взуття <span class="cnt">0</span></span><span class="chip" data-fk="l1" data-fv="sports">Спорт <span class="cnt">144</span></span><span class="chip" data-fk="l1" data-fv="tourism_and_active_recreation">Туризм та активний відпочинок <span class="cnt">138</span></span><span class="chip" data-fk="l1" data-fv="tools_and_equipment">Інструменти та обладнання <span class="cnt">249</span></span><span class="chip" data-fk="l1" data-fv="autogoods">Автотовари <span class="cnt">46</span></span><span class="chip" data-fk="l1" data-fv="books_and_hobbies">Книги та хобі <span class="cnt">33</span></span><span class="chip" data-fk="l1" data-fv="jewelry_and_watches">Прикраси та годинники <span class="cnt">61</span></span><span class="chip" data-fk="l1" data-fv="furniture">Меблі <span class="cnt">62</span></span><span class="chip" data-fk="l1" data-fv="food_and_beverages">Їжа та напої <span class="cnt">0</span></span><span class="chip" data-fk="l1" data-fv="VSE_DLYA_SADU">Все для саду <span class="cnt">91</span></span><span class="chip" data-fk="l1" data-fv="beauty_and_care">Краса та догляд <span class="cnt">124</span></span><span class="chip" data-fk="l1" data-fv="bar_and_drinks">Бар та напої <span class="cnt">0</span></span><span class="chip" data-fk="l1" data-fv="construction_and_repair">Будівництво та ремонт <span class="cnt">107</span></span><span class="chip" data-fk="l1" data-fv="music_instruments">Музичні інструменти <span class="cnt">97</span></span></span></div>
+ <div class="chgroup"><span class="cap">Напрям</span><span id="l1chips"><span class="chip on" data-fk="l1" data-fv="ALL">Усі напрями <span class="cnt">20</span></span><span class="chip" data-fk="l1" data-fv="computers_components">Комп&#x27;ютери та комплектуючі <span class="cnt">87</span></span><span class="chip" data-fk="l1" data-fv="household_appliances">Побутова техніка <span class="cnt">134</span></span><span class="chip" data-fk="l1" data-fv="electronics">Електроніка <span class="cnt">153</span></span><span class="chip" data-fk="l1" data-fv="zoo_products">Зоотовари <span class="cnt">129</span></span><span class="chip" data-fk="l1" data-fv="childrens_products">Дитячі товари <span class="cnt">179</span></span><span class="chip" data-fk="l1" data-fv="home">Все для дому <span class="cnt">161</span></span><span class="chip" data-fk="l1" data-fv="fashion">Одяг та взуття <span class="cnt">0</span></span><span class="chip" data-fk="l1" data-fv="sports">Спорт <span class="cnt">144</span></span><span class="chip" data-fk="l1" data-fv="tourism_and_active_recreation">Туризм та активний відпочинок <span class="cnt">138</span></span><span class="chip" data-fk="l1" data-fv="tools_and_equipment">Інструменти та обладнання <span class="cnt">249</span></span><span class="chip" data-fk="l1" data-fv="autogoods">Автотовари <span class="cnt">46</span></span><span class="chip" data-fk="l1" data-fv="books_and_hobbies">Книги та хобі <span class="cnt">33</span></span><span class="chip" data-fk="l1" data-fv="jewelry_and_watches">Прикраси та годинники <span class="cnt">61</span></span><span class="chip" data-fk="l1" data-fv="furniture">Меблі <span class="cnt">62</span></span><span class="chip" data-fk="l1" data-fv="food_and_beverages">Їжа та напої <span class="cnt">0</span></span><span class="chip" data-fk="l1" data-fv="VSE_DLYA_SADU">Все для саду <span class="cnt">91</span></span><span class="chip" data-fk="l1" data-fv="beauty_and_care">Краса та догляд <span class="cnt">149</span></span><span class="chip" data-fk="l1" data-fv="bar_and_drinks">Бар та напої <span class="cnt">0</span></span><span class="chip" data-fk="l1" data-fv="construction_and_repair">Будівництво та ремонт <span class="cnt">107</span></span><span class="chip" data-fk="l1" data-fv="music_instruments">Музичні інструменти <span class="cnt">97</span></span></span></div>
  <div class="searchrow">
    <span class="searchbox"><span class="ic">🔍</span><input id="q" type="text" placeholder="назва, code, family або атрибут…" autocomplete="off"><span class="clr" id="clr">✕</span></span>
    <span class="filterwrap">
      <span class="fbtn" id="fbtn"><span>Фільтри</span><span id="fbadge"></span><span class="cv">▼</span></span>
      <div class="fpop" id="fpop">
-       <div class="fg"><div class="fgt">Рівень вложенності</div><div class="fgr" id="fr-lvl"><span class="sf on" data-fk="lvl" data-fv="ALL">Усі рівні</span><span class="sf" data-fk="lvl" data-fv="1">L1 · 20</span><span class="sf" data-fk="lvl" data-fv="2">L2 · 128</span><span class="sf" data-fk="lvl" data-fv="3">L3 · 787</span><span class="sf" data-fk="lvl" data-fv="4">L4 · 964</span><span class="sf" data-fk="lvl" data-fv="5">L5 · 115</span><span class="sf" data-fk="lvl" data-fv="6">L6 · 2</span></div></div>
-       <div class="fg"><div class="fgt">Привʼязка family</div><div class="fgr" id="fr-fam"><span class="sf on" data-fk="fam" data-fv="ALL">Будь-яка</span><span class="sf" data-fk="fam" data-fv="yes">З family · 1365</span><span class="sf" data-fk="fam" data-fv="no">Без family · 651</span><span class="sf" data-fk="fam" data-fv="leafnofam">Leaf без family · 277</span></div></div>
-       <div class="fg"><div class="fgt">Обовʼязкових атрибутів</div><div class="fgr" id="fr-attr"><span class="sf on" data-fk="attr" data-fv="ALL">Будь-скільки</span><span class="sf" data-fk="attr" data-fv="r0">0 · 1</span><span class="sf" data-fk="attr" data-fv="r1">1–9 · 127</span><span class="sf" data-fk="attr" data-fv="r2">10–14 · 839</span><span class="sf" data-fk="attr" data-fv="r3">15–19 · 306</span><span class="sf" data-fk="attr" data-fv="r4">20+ · 92</span></div></div>
+       <div class="fg"><div class="fgt">Рівень вложенності</div><div class="fgr" id="fr-lvl"><span class="sf on" data-fk="lvl" data-fv="ALL">Усі рівні</span><span class="sf" data-fk="lvl" data-fv="1">L1 · 20</span><span class="sf" data-fk="lvl" data-fv="2">L2 · 129</span><span class="sf" data-fk="lvl" data-fv="3">L3 · 792</span><span class="sf" data-fk="lvl" data-fv="4">L4 · 982</span><span class="sf" data-fk="lvl" data-fv="5">L5 · 115</span><span class="sf" data-fk="lvl" data-fv="6">L6 · 2</span></div></div>
+       <div class="fg"><div class="fgt">Привʼязка family</div><div class="fgr" id="fr-fam"><span class="sf on" data-fk="fam" data-fv="ALL">Будь-яка</span><span class="sf" data-fk="fam" data-fv="yes">З family · 1382</span><span class="sf" data-fk="fam" data-fv="no">Без family · 658</span><span class="sf" data-fk="fam" data-fv="leafnofam">Leaf без family · 277</span></div></div>
+       <div class="fg"><div class="fgt">Обовʼязкових атрибутів</div><div class="fgr" id="fr-attr"><span class="sf on" data-fk="attr" data-fv="ALL">Будь-скільки</span><span class="sf" data-fk="attr" data-fv="r0">0 · 1</span><span class="sf" data-fk="attr" data-fv="r1">1–9 · 133</span><span class="sf" data-fk="attr" data-fv="r2">10–14 · 850</span><span class="sf" data-fk="attr" data-fv="r3">15–19 · 306</span><span class="sf" data-fk="attr" data-fv="r4">20+ · 92</span></div></div>
        <div class="ff"><span class="hint">Фільтри працюють разом із пошуком та напрямом</span><span class="sf" data-off="ALLF">Скинути все</span></div>
      </div>
    </span>
@@ -2491,16 +2491,48 @@ async function ghRead(k,path,needTok){
  GHDIAG[k+':'+path]={status:r.status,url:u,branch:GHC[k].branch};
  if(r.status===404)return {missing:true};
  if(r.ok){const j=await r.json();GHSHA[k+':'+path]=j.sha;
-  return {text:ghB64d(j.content),sha:j.sha};}
+  /* понад 1 МБ Contents API віддає порожній content і encoding:"none" */
+  if(j.content&&j.encoding!=='none')return {text:ghB64d(j.content),sha:j.sha};
+  const hr=Object.assign({},h,{'Accept':'application/vnd.github.raw+json'});
+  const r2=await fetch(ghApi(k,path),{headers:hr,cache:'no-store'});
+  GHDIAG[k+':'+path]={status:r2.status,url:u,branch:GHC[k].branch,raw:true};
+  if(r2.ok)return {text:await r2.text(),sha:j.sha,big:true};
+  throw new Error(await ghErr(r2,k,path));}
  if(!needTok&&(r.status===403||r.status===429)){
   try{const r2=await fetch(ghRaw(k,path),{cache:'no-store'});
    if(r2.ok)return {text:await r2.text(),sha:null,stale:true};
    if(r2.status===404)return {missing:true};}catch(e){}
  }
- throw new Error(ghMsg(r.status));
+ throw new Error(await ghErr(r,k,path));
+}
+const GHBIG=600*1024;   // за цим порогом Contents API вже небезпечний
+/* Blob -> Tree -> Commit -> Ref: без ліміту 1 МБ, працює до 100 МБ */
+async function ghWriteBig(k,path,text,msg){
+ const R=GHC[k],api='https://api.github.com/repos/'+R.slug;
+ const H={'Accept':'application/vnd.github+json','Authorization':'Bearer '+GHTOK,
+  'Content-Type':'application/json','X-GitHub-Api-Version':'2022-11-28'};
+ const br=encodeURIComponent(R.branch);
+ const get=async u=>{const r=await fetch(api+u,{headers:H,cache:'no-store'});
+  if(!r.ok)throw new Error(await ghErr(r,k,path));return r.json();};
+ const post=async(u,b)=>{const r=await fetch(api+u,{method:'POST',headers:H,body:JSON.stringify(b)});
+  if(!r.ok)throw new Error(await ghErr(r,k,path));return r.json();};
+ const head=await get('/git/ref/heads/'+br);
+ const baseSha=head.object.sha;
+ const baseTree=(await get('/git/commits/'+baseSha)).tree.sha;
+ const blob=await post('/git/blobs',{content:ghB64e(text),encoding:'base64'});
+ const tree=await post('/git/trees',{base_tree:baseTree,
+  tree:[{path:path,mode:'100644',type:'blob',sha:blob.sha}]});
+ const commit=await post('/git/commits',{message:msg||('update '+path),
+  tree:tree.sha,parents:[baseSha]});
+ const r=await fetch(api+'/git/refs/heads/'+br,{method:'PATCH',headers:H,
+  body:JSON.stringify({sha:commit.sha})});
+ if(!r.ok)throw new Error(await ghErr(r,k,path));
+ delete GHSHA[k+':'+path];
+ return {big:true,commit:commit.sha};
 }
 async function ghWrite(k,path,text,msg){
  if(!GHTOK)throw new Error('потрібен токен');
+ if(text.length>GHBIG)return ghWriteBig(k,path,text,msg);
  const key=k+':'+path;
  const put=async()=>{
   const body={message:msg||('update '+path),content:ghB64e(text),branch:GHC[k].branch};
@@ -2514,8 +2546,34 @@ async function ghWrite(k,path,text,msg){
   try{await ghRead(k,path);}catch(e){}
   r=await put();
  }
- if(!r.ok)throw new Error(ghMsg(r.status));
+ if(!r.ok)throw new Error(await ghErr(r,k,path));
  const j=await r.json();GHSHA[key]=j.content.sha;return j;
+}
+/* GitHub у тілі відповіді пише точну причину — саме її і показуємо */
+async function ghErr(r,k,path){
+ let m='';
+ try{const j=await r.json();m=j.message||'';
+  if(j.errors&&j.errors.length&&j.errors[0].message)m+=' — '+j.errors[0].message;}
+ catch(e){}
+ const need=r.headers&&r.headers.get?r.headers.get('X-Accepted-GitHub-Permissions'):null;
+ if(r.status===403){
+  if(/not accessible by personal access token|Resource not accessible/i.test(m))
+   return 'токен не має права записувати в '+GHC[k].slug
+    +'. Перевір: репозиторій вибраний у токені, Contents: Read and write'
+    +(need?', потрібно '+need:'')
+    +', і токен схвалений власником організації';
+  if(/rate limit|abuse|secondary/i.test(m))
+   return 'GitHub придушив запити (rate limit). Спробуй за хвилину';
+  return '403: '+(m||'немає доступу');
+ }
+ if(r.status===404)return 'GitHub не бачить '+GHC[k].slug+'/'+path
+   +' — репозиторій приватний для цього токена, або гілки '+GHC[k].branch+' немає';
+ if(r.status===401)return 'токен недійсний або прострочений';
+ if(r.status===409)return 'конфлікт версій — перезавантаж сторінку і спробуй ще';
+ if(r.status===413||/too large|too_large/i.test(m))
+  return 'файл завеликий для Contents API';
+ if(r.status===422)return '422: '+(m||'GitHub відхилив запит');
+ return 'HTTP '+r.status+(m?': '+m:'');
 }
 
 /* ---- індикатор стану ---- */
@@ -2869,8 +2927,10 @@ async function trPush(file){
   st.textContent='читаю файл…';
   const txt=await file.text();
   const p=ghNormTree(txt);
-  st.textContent='розібрано '+p.nodes.length+' категорій, заливаю…';
-  await ghWrite(GHFILE.tree[0],GHFILE.tree[1],JSON.stringify(p),'tree: '+p.nodes.length+' категорій з '+file.name);
+  const payload=JSON.stringify(p);
+  st.textContent='розібрано '+p.nodes.length+' категорій ('+Math.round(payload.length/1024)+' КБ), '
+   +(payload.length>GHBIG?'заливаю окремим комітом…':'заливаю…');
+  await ghWrite(GHFILE.tree[0],GHFILE.tree[1],payload,'tree: '+p.nodes.length+' категорій з '+file.name);
   ls.s(KTREE,JSON.stringify(p));
   initTree(p);
   GHSRC.tree='GitHub · '+GHC[GHFILE.tree[0]].slug.split('/')[1]+'/'+GHFILE.tree[1]+' · '+p.nodes.length+' категорій';GHERR='';ghStatus();
