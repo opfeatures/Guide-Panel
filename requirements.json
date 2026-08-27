@@ -211,7 +211,7 @@
         "t": "n",
         "k": "bad",
         "ti": "Заборонені keywords у назві",
-        "d": "<b>Заборонено в назві:<span style=\"display: none;\"></span></b><br><span style=\"display: none;\"></span><ul><li>Використовувати всі великі літери (CAPS LOCK)<br><span style=\"display: none;\"></span></li><li>Розділові знаки (крапки, коми, тире), якщо вони не є частиною моделі<br><span style=\"display: none;\"></span></li><li>Жаргонізми та спеціальні символи (§, ≠, ≥ тощо)<br><span style=\"display: none;\"></span></li><li>Слова «Акція», «Знижка», «Розпродаж», «Уцінка», «Copy», «Original»<br><span style=\"display: none;\"></span></li><li>Посилання, назви сайтів або контактні дані</li></ul>",
+        "d": "<ul><li>Використовувати всі великі літери (CAPS LOCK)<br><span style=\"display: none;\"></span></li><li>Розділові знаки (крапки, коми, тире), якщо вони не є частиною моделі<br><span style=\"display: none;\"></span></li><li>Жаргонізми та спеціальні символи (§, ≠, ≥ тощо)<br><span style=\"display: none;\"></span></li><li>Слова «Акція», «Знижка», «Розпродаж», «Уцінка», «Copy», «Original»<br><span style=\"display: none;\"></span></li><li>Посилання, назви сайтів або контактні дані</li></ul>",
         "ch": [],
         "tags": []
        }
