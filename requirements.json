@@ -356,7 +356,7 @@
         "t": "n",
         "k": "info",
         "ti": "Важливо",
-        "d": "Текст примітки або застереження.",
+        "d": "<code>&lt;<span style=\"display: none;\"></span><span style=\"color: #4CAF50FF;\">h5<span style=\"display: none;\"></span></span>&gt;&lt;/<span style=\"display: none;\"></span><span style=\"color: #4CAF50FF;\">h5<span style=\"display: none;\"></span></span>&gt; - заголовок опису&lt;<span style=\"display: none;\"></span><span style=\"color: #4CAF50FF;\">br<span style=\"display: none;\"></span></span>&gt; - відстань між заголовком та описом&lt;<span style=\"display: none;\"></span><span style=\"color: #4CAF50FF;\">ul<span style=\"display: none;\"></span></span>&gt; - початок тегу списком&lt;<span style=\"display: none;\"></span><span style=\"color: #4CAF50FF;\">li<span style=\"display: none;\"></span></span>&gt;&lt;/<span style=\"display: none;\"></span><span style=\"color: #4CAF50FF;\">li<span style=\"display: none;\"></span></span>&gt; - список&lt;/<span style=\"display: none;\"></span><span style=\"color: #4CAF50FF;\">ul<span style=\"display: none;\"></span></span>&gt; - кінець тегу зі списком&lt;<span style=\"display: none;\"></span><span style=\"color: #4CAF50FF;\">img<span style=\"display: none;\"></span></span> <span style=\"display: none;\"></span><span style=\"color: #2196F3FF;\">alt<span style=\"display: none;\"></span></span>=\"\" <span style=\"display: none;\"></span><span style=\"color: #2196F3FF;\">src<span style=\"display: none;\"></span></span>=\"\"&gt; - посилання на фото додаємо в src=\"СЮДИ\"</code>",
         "ch": [],
         "tags": []
        }
