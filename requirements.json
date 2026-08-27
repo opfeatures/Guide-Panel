@@ -317,7 +317,7 @@
       "items": [
        {
         "t": "Блок",
-        "d": "Опис блоку"
+        "d": "<span class=\"tier min\" style=\"background: none 0% 0% / auto repeat scroll padding-box border-box rgb(253, 243, 224); color: rgb(217, 138, 4);\">Min</span> 20+ символів<br><span class=\"tier mid\" style=\"background: none 0% 0% / auto repeat scroll padding-box border-box rgb(232, 240, 254); color: rgb(47, 111, 237);\">Mid</span> 20–49 символів<br><span class=\"tier high\" style=\"background: none 0% 0% / auto repeat scroll padding-box border-box rgb(231, 246, 236); color: rgb(22, 163, 74);\">High</span> 50–69 символів; перші 60 симв. покривають запит"
        },
        {
         "t": "Блок",
