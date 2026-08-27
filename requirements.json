@@ -198,7 +198,7 @@
        },
        {
         "t": "Пошукова відповідність",
-        "d": "<span class=\"tier min\">Min</span> Тип товару мовою покупця (не лише артикул)<br><span class=\"tier mid\">Mid</span> Тип + бренд + ключовий параметр у перших 60 символах<br><span class=\"tier high\">High</span> Формула повністю; без заборонених keyword-спам"
+        "d": "<span class=\"tier min\">Min</span> Тип товару зрозумілий для покупця (не лише артикул)<br><span class=\"tier mid\">Mid</span> Тип + бренд + ключовий параметр у перших 60 символах<br><span class=\"tier high\">High</span> Формула повністю; без заборонених keyword-спам"
        },
        {
         "t": "Мова та регістр",
