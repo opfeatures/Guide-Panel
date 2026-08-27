@@ -85,10 +85,6 @@
         "d": "<span class=\"tier min\">Min</span> від 1000 px<br><span class=\"tier mid\">Mid</span> 1000–1500 px<br><span class=\"tier high\">High</span> 1500–2000+ px"
        },
        {
-        "t": "Дублі / зайві фото",
-        "d": "<span class=\"tier min\">Min</span> Допускаються слабкі кадри, без критичних помилок<br><span class=\"tier mid\">Mid</span> Дублів майже немає, кожен кадр несе сенс<br><span class=\"tier high\">High</span> Дублів немає, кожен кадр = окремий ракурс"
-       },
-       {
         "t": "Що показати",
         "d": "<span class=\"tier min\">Min</span> Товар і базовий вигляд<br><span class=\"tier mid\">Mid</span> Товар + деталі + важливі елементи вибору<br><span class=\"tier high\">High</span> Повний сценарій: деталі, масштаб, комплект, використання"
        }
