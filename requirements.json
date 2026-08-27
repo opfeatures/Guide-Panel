@@ -27,7 +27,7 @@
         "t": "n",
         "k": "warn",
         "ti": "Важливо!",
-        "d": "1 скю = 1 варіація товару<br><span style=\"color: rgb(32, 36, 46);\">Бренд у назві = атрибуту «Бренд» в картці<br><br></span>",
+        "d": "1 скю = 1 варіація товару<br><span style=\"color: rgb(32, 36, 46);\">Бренд у назві = атрибуту «Бренд» в картці<br></span><p style=\"font-family: Geologica, Inter, sans-serif; margin: 12px 0px; line-height: 1.6; color: rgb(10, 28, 70); font-size: 16px; background-color: rgb(255, 255, 255);\">5. <span style=\"font-weight: 700; font-family: inherit !important;\">Бренд</span> потрібен обов’язково, адже товари без нього не зможуть бути прив’язані до майстер-карток у системі</p><p style=\"font-family: Geologica, Inter, sans-serif; margin: 12px 0px; line-height: 1.6; color: rgb(10, 28, 70); font-size: 16px; background-color: rgb(255, 255, 255);\">6. <span style=\"font-weight: 700; font-family: inherit !important;\">Вендор-код </span>потрібен обов’язково, адже товари без нього не зможуть бути прив’язані до майстер-карток у системі</p><p style=\"font-family: Geologica, Inter, sans-serif; margin: 12px 0px; line-height: 1.6; color: rgb(10, 28, 70); font-size: 16px; background-color: rgb(255, 255, 255);\">7. <span style=\"font-weight: 700; font-family: inherit !important;\">Баркод</span> потрібен обов’язково, для додаткової звірки приєднаних пропозицій</p><span style=\"color: rgb(32, 36, 46);\"><br></span>",
         "ch": [],
         "tags": []
        }
