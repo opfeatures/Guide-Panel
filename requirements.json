@@ -193,10 +193,6 @@
       "t": "c",
       "items": [
        {
-        "t": "Ідентифікація",
-        "d": "<span class=\"tier min\">Min</span> Тип товару + бренд + модель<br><span class=\"tier mid\">Mid</span> + ключова характеристика<br><span class=\"tier high\">High</span> Ключові характеристики видні до обрізки на мобільному"
-       },
-       {
         "t": "Довжина",
         "d": "<span class=\"tier min\">Min</span> 20+ символів<br><span class=\"tier mid\">Mid</span> 20–70 символів<br><span class=\"tier high\">High</span> 20–69 символів; перші 60 симв. покривають запит"
        },
