@@ -194,7 +194,7 @@
       "items": [
        {
         "t": "Довжина",
-        "d": "<span class=\"tier min\">Min</span> 20+ символів<br><span class=\"tier mid\">Mid</span> 20–70 символів<br><span class=\"tier high\">High</span> 50–69 символів; перші 60 симв. покривають запит"
+        "d": "<span class=\"tier min\">Min</span> 20+ символів<br><span class=\"tier mid\">Mid</span> 20–49 символів<br><span class=\"tier high\">High</span> 50–69 символів; перші 60 симв. покривають запит"
        },
        {
         "t": "Пошукова відповідність",
