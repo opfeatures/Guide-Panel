@@ -194,7 +194,7 @@
       "items": [
        {
         "t": "Ідентифікація",
-        "d": "<span class=\"tier min\">Min</span> Тип товару + бренд + модель<br><span class=\"tier mid\">Mid</span> + ключова характеристика; читається в 3 рядках<br><span class=\"tier high\">High</span> Ключові характеристики видні до обрізки на мобільному"
+        "d": "<span class=\"tier min\">Min</span> Тип товару + бренд + модель<br><span class=\"tier mid\">Mid</span> + ключова характеристика<br><span class=\"tier high\">High</span> Ключові характеристики видні до обрізки на мобільному"
        },
        {
         "t": "Довжина",
