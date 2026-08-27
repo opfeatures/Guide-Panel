@@ -624,6 +624,11 @@ body.admin .treeadmin{display:flex}
 .vsrc .vdrop .vd2{font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 @media(max-width:640px){.vsrc .vdrop{flex-direction:column;align-items:flex-start}}
 
+.vsrc .vdrop .vhint{margin-left:auto;flex-shrink:0;max-width:290px;font-size:11.5px;line-height:1.4;
+ color:var(--purple);background:var(--purple-soft);border:1px solid #e2dcfa;border-radius:9px;padding:6px 10px}
+.vsrc .vdrop .vhint b{font-weight:800}
+@media(max-width:900px){.vsrc .vdrop .vhint{margin-left:0;max-width:none}}
+
 </style></head><body>
 <div class="ghpill" id="ghpill" title="Стан синхронізації з GitHub"><span class="d"></span><span class="tx" id="ghtx">перевіряю…</span></div>
 <div class="adminbtn" id="adminbtn"><span class="dot"></span><span class="lab">Адмін<span class="sub" id="astate">перегляд</span></span></div>
@@ -736,7 +741,7 @@ body.admin .treeadmin{display:flex}
 
  <section class="view" id="view-val">
   <div class="vsrc">
-   <div class="vsh"><span class="t">Звідки взяти фід</span><span class="h">XML або PHP, що віддає XML</span></div>
+   <div class="vsh"><span class="t">Перегляд або завантаження фіда</span><span class="h">XML або PHP, що віддає XML</span></div>
    <div class="vurl">
     <span class="ui"><span class="lk">🔗</span>
      <input id="v-url" type="text" placeholder="https://merchant.com/feed.xml" autocomplete="off" spellcheck="false"></span>
@@ -749,7 +754,8 @@ body.admin .treeadmin{display:flex}
     <input type="file" id="v-file" accept=".xml,text/xml,application/xml">
     <span class="vic">📥</span>
     <span class="vdt"><span class="vd1">Перетягни файл сюди або клікни, щоб вибрати</span>
-     <span class="vd2" id="v-fname">Файл не вибрано · обробка локальна</span></span>
+     <span class="vd2" id="v-fname">Файл не вибрано · обробка локальна, нічого не йде на сервер</span></span>
+    <span class="vhint">Щоб перевірити <b>інший фід</b> — просто додай новий файл, аналіз перезапуститься</span>
    </label>
   </div>
   <div class="vprog" id="v-progress">
