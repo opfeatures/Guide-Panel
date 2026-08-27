@@ -606,6 +606,24 @@ body.admin .treeadmin{display:flex}
 .vumsg a{color:inherit;font-weight:800}
 @media(max-width:640px){.vurl .ub{padding:10px 13px}}
 
+/* ---- CSS: блок «звідки взяти фід» ---- */
+.vsrc{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px 17px 15px;margin:6px 0 16px;box-shadow:0 2px 10px rgba(32,36,46,.04)}
+.vsrc .vsh{display:flex;align-items:baseline;gap:9px;margin-bottom:11px;flex-wrap:wrap}
+.vsrc .vsh .t{font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.vsrc .vsh .h{font-size:12px;color:var(--dim)}
+.vsrc .vurl{margin-bottom:0}
+.vsrc .vumsg{margin:11px 0 0}
+.vor{display:flex;align-items:center;gap:11px;margin:13px 0 11px}
+.vor:before,.vor:after{content:'';flex:1;height:1px;background:var(--line)}
+.vor span{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--dim)}
+.vsrc .vdrop{flex-direction:row;align-items:center;justify-content:flex-start;gap:12px;
+ padding:13px 15px;margin-bottom:0;text-align:left}
+.vsrc .vdrop .vic{font-size:20px;flex-shrink:0}
+.vsrc .vdrop .vdt{display:flex;flex-direction:column;gap:2px;min-width:0}
+.vsrc .vdrop .vd1{font-size:13.5px}
+.vsrc .vdrop .vd2{font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+@media(max-width:640px){.vsrc .vdrop{flex-direction:column;align-items:flex-start}}
+
 </style></head><body>
 <div class="ghpill" id="ghpill" title="Стан синхронізації з GitHub"><span class="d"></span><span class="tx" id="ghtx">перевіряю…</span></div>
 <div class="adminbtn" id="adminbtn"><span class="dot"></span><span class="lab">Адмін<span class="sub" id="astate">перегляд</span></span></div>
@@ -717,19 +735,23 @@ body.admin .treeadmin{display:flex}
  </section>
 
  <section class="view" id="view-val">
-  <div class="vurl">
-   <span class="ui"><span class="lk">🔗</span>
-    <input id="v-url" type="text" placeholder="посилання на фід — https://… .xml або .php" autocomplete="off" spellcheck="false"></span>
-   <button class="ub pri" id="v-urlgo">Завантажити й перевірити</button>
-   <button class="ub" id="v-urlsave">Зберегти файл</button>
+  <div class="vsrc">
+   <div class="vsh"><span class="t">Звідки взяти фід</span><span class="h">XML або PHP, що віддає XML</span></div>
+   <div class="vurl">
+    <span class="ui"><span class="lk">🔗</span>
+     <input id="v-url" type="text" placeholder="https://merchant.com/feed.xml" autocomplete="off" spellcheck="false"></span>
+    <button class="ub pri" id="v-urlgo">Перевірити</button>
+    <button class="ub" id="v-urlsave">⇣ Завантажити</button>
+   </div>
+   <div class="vumsg" id="v-umsg"></div>
+   <div class="vor"><span>або</span></div>
+   <label class="vdrop" id="v-drop">
+    <input type="file" id="v-file" accept=".xml,text/xml,application/xml">
+    <span class="vic">📥</span>
+    <span class="vdt"><span class="vd1">Перетягни файл сюди або клікни, щоб вибрати</span>
+     <span class="vd2" id="v-fname">Файл не вибрано · обробка локальна</span></span>
+   </label>
   </div>
-  <div class="vumsg" id="v-umsg"></div>
-  <label class="vdrop" id="v-drop">
-   <input type="file" id="v-file" accept=".xml,text/xml,application/xml">
-   <span class="vic">📥</span>
-   <span class="vd1">Перетягни XML-фід сюди або клікни, щоб вибрати файл</span>
-   <span class="vd2" id="v-fname">Файл не вибрано · обробка локальна, нічого не завантажується на сервер</span>
-  </label>
   <div class="vprog" id="v-progress">
    <div class="vprow"><span class="vspin"></span><span id="v-ptext">Аналізую…</span></div>
    <div class="vstages" id="v-stages"></div>
@@ -3011,16 +3033,47 @@ function vNormUrl(v){
  try{const x=new URL(u);if(!x.hostname||x.hostname.indexOf('.')<0)return '';return x.toString();}
  catch(e){return '';}
 }
+let VTIMEOUT=25000;      // скільки чекаємо на відповідь сервера
+let VSTALL=60000;        // скільки терпимо тишу посеред передачі
+let VDL=false;
+function vDeadline(ms){
+ const c=new AbortController();
+ const t=setTimeout(()=>{try{c.abort();}catch(e){}},ms);
+ return {signal:c.signal,clear:()=>clearTimeout(t)};
+}
+/* read(), який не висне назавжди */
+async function vRead(rd){
+ let t;
+ const stall=new Promise((_,rej)=>{t=setTimeout(()=>
+   rej(new Error('передача зупинилась — сервер перестав віддавати дані')),VSTALL);});
+ try{return await Promise.race([rd.read(),stall]);}
+ finally{clearTimeout(t);}
+}
+function vNameFromUrl(url){
+ let n=url.split(/[?#]/)[0].split('/').filter(Boolean).pop()||'feed.xml';
+ try{n=decodeURIComponent(n);}catch(e){}
+ n=n.replace(/[\\/:*?"<>|]/g,'_').slice(0,70);
+ /* .php віддає XML — на диску має лежати як .xml, інакше файл виглядає скриптом */
+ if(!/\.(xml|rss|yml|csv|txt|gz|zip)$/i.test(n))n+='.xml';
+ return n;
+}
 /* спершу напряму, потім через проксі */
 async function vFeedFetch(url){
  const tries=[{how:'напряму',u:url}];
  if(FEEDPROXY)tries.push({how:'через проксі',u:FEEDPROXY+'?url='+encodeURIComponent(url)});
  let last='';
  for(let i=0;i<tries.length;i++){
-  const t=tries[i];
+  const t=tries[i], dl=vDeadline(VTIMEOUT);
   let r;
-  try{r=await fetch(t.u,{cache:'no-store',redirect:'follow'});}
-  catch(e){last=(i===0?'домен не дозволяє читати з браузера':'проксі недоступне');continue;}
+  try{r=await fetch(t.u,{cache:'no-store',redirect:'follow',signal:dl.signal});}
+  catch(e){
+   dl.clear();
+   last=(e&&e.name==='AbortError')
+     ? 'сервер не відповів за '+(VTIMEOUT/1000)+' с'
+     : (i===0?'домен не дозволяє читати з браузера':'проксі недоступне');
+   continue;
+  }
+  dl.clear();
   if(!r.ok){
    let m='';try{const j=await r.clone().json();m=j.error||'';}catch(e){}
    last='відповідь '+r.status+(m?' — '+m:'');continue;
@@ -3038,15 +3091,14 @@ async function vUrlSource(url){
  const rd=resp.body.getReader();
  const pre=[];let bytes=0;
  while(bytes<262144){
-  const x=await rd.read();
+  const x=await vRead(rd);
   if(x.done)break;
   pre.push(x.value);bytes+=(x.value.byteLength||x.value.length||0);
  }
  const dec=new TextDecoder('utf-8');
  let head='';
  pre.forEach(u=>{head+=dec.decode(u,{stream:true});});
- let name=url.split(/[?#]/)[0].split('/').filter(Boolean).pop()||'feed.xml';
- name=decodeURIComponent(name).slice(0,70);
+ const name=vNameFromUrl(url);
  return {
   name:name,size:size,head:head.slice(0,300000),how:got.how,srcUrl:url,
   stream(){
@@ -3055,7 +3107,7 @@ async function vUrlSource(url){
     async pull(c){
      if(i<pre.length){c.enqueue(pre[i++]);return;}
      let x;
-     try{x=await rd.read();}catch(e){c.error(e);return;}
+     try{x=await vRead(rd);}catch(e){c.error(e);return;}
      if(x.done){c.close();return;}
      c.enqueue(x.value);
     },
@@ -3080,13 +3132,49 @@ async function vFromUrl(){
   vUmsg('bad','Не вдалось: '+esc(e.message)
    +'. <a href="'+esc(url)+'" target="_blank" rel="noopener">Відкрити посилання</a> — збережи файл і перетягни його сюди.');
  }
- btn.disabled=false;btn.textContent='Завантажити й перевірити';
+ btn.disabled=false;btn.textContent='Перевірити';
 }
-function vSaveUrl(){
+const MB=1048576;
+async function vSaveUrl(){
+ const btn=document.getElementById('v-urlsave');
  const url=vNormUrl(document.getElementById('v-url').value);
  if(!url){vUmsg('bad','Схоже, це не посилання. Потрібен повний URL фіда.');return;}
- window.open(url,'_blank','noopener');
- vUmsg('warn','Відкрив посилання в новій вкладці. Збережи файл і перетягни його в панель.');
+ if(VDL)return;
+ document.getElementById('v-url').value=url;
+ VDL=true;btn.disabled=true;btn.textContent='Качаю…';
+ vUmsg('warn','Зʼєднуюсь…');
+ try{
+  const got=await vFeedFetch(url);
+  const total=+(got.resp.headers.get('Content-Length')||0);
+  if(total>1610612736)throw new Error('файл більший за 1.5 ГБ — браузер такого в памʼяті не втримає');
+  const rd=got.resp.body.getReader();
+  const parts=[];let done=0,tick=0;
+  while(true){
+   const x=await vRead(rd);
+   if(x.done)break;
+   parts.push(x.value);done+=(x.value.byteLength||x.value.length||0);
+   if(Date.now()-tick>200){
+    tick=Date.now();
+    vUmsg('warn','Качаю '+(done/MB).toFixed(1)+' МБ'
+      +(total?' з '+(total/MB).toFixed(1)+' МБ':'')+' · '+got.how);
+    await new Promise(r=>setTimeout(r,0));
+   }
+  }
+  if(!done)throw new Error('сервер віддав порожній файл');
+  const name=vNameFromUrl(url);
+  const blob=new Blob(parts,{type:'application/xml'});
+  const href=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=href;a.download=name;
+  document.body.appendChild(a);a.click();a.remove();
+  setTimeout(()=>{try{URL.revokeObjectURL(href);}catch(e){}},4000);
+  vUmsg('good','Збережено <b>'+esc(name)+'</b> · '+(done/MB).toFixed(1)+' МБ · '+got.how
+    +'. Перетягни файл у панель або тисни «Перевірити», щоб проаналізувати одразу.');
+ }catch(e){
+  vUmsg('bad','Не вдалось завантажити: '+esc(e.message)
+   +'. <a href="'+esc(url)+'" target="_blank" rel="noopener">Відкрити в новій вкладці</a> і зберегти вручну.');
+ }
+ VDL=false;btn.disabled=false;btn.textContent='⇣ Завантажити';
 }
 document.getElementById('v-urlgo').addEventListener('click',vFromUrl);
 document.getElementById('v-urlsave').addEventListener('click',vSaveUrl);
