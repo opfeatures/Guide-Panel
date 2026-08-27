@@ -317,7 +317,7 @@
        },
        {
         "t": "Комплектація",
-        "d": "<span class=\"tier min\">Min</span> Згадана базово<br><span class=\"tier mid\">Mid</span> Перерахована явно<br><span class=\"tier high\">High</span> Повністю і без двозначності; збігається з фото"
+        "d": "<span class=\"tier min\">Min</span> Згадана базово<br><span class=\"tier mid\">Mid</span> Перерахована явно<br><span class=\"tier high\">High</span> Повністю і без двозначності; збігається з фото - атрибута"
        },
        {
         "t": "Структура",
