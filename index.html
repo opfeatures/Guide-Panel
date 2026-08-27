@@ -586,6 +586,26 @@ body.admin .treeadmin{display:flex}
 .dlg .probe{display:inline-block;margin-top:11px;font-size:12px;font-weight:700;color:var(--purple);cursor:pointer}
 .dlg .probe:hover{text-decoration:underline}
 
+/* ---- CSS: фід за посиланням ---- */
+.vurl{display:flex;gap:8px;align-items:stretch;margin-bottom:12px;flex-wrap:wrap}
+.vurl .ui{flex:1;min-width:260px;display:flex;align-items:center;gap:8px;background:var(--card);border:1.5px solid var(--line);border-radius:12px;padding:0 13px;transition:.13s}
+.vurl .ui:focus-within{border-color:var(--purple);box-shadow:0 0 0 3px rgba(108,78,230,.1)}
+.vurl .ui .lk{font-size:15px;opacity:.5;flex-shrink:0}
+.vurl input{flex:1;min-width:0;border:0;outline:0;background:transparent;font-family:inherit;font-size:13.5px;color:var(--ink);padding:11px 0}
+.vurl input::placeholder{color:#c3c8d4}
+.vurl .ub{flex-shrink:0;border:1.5px solid var(--line);background:#f4f5f8;color:#4a4f5c;border-radius:12px;padding:0 15px;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;transition:.13s;white-space:nowrap}
+.vurl .ub:hover{border-color:#dcd6f7;color:var(--purple)}
+.vurl .ub.pri{background:var(--purple);border-color:var(--purple);color:#fff}
+.vurl .ub.pri:hover{background:#5a3fd0}
+.vurl .ub:disabled{opacity:.5;cursor:default}
+.vumsg{display:none;font-size:12.5px;line-height:1.5;border-radius:11px;padding:9px 13px;margin-bottom:12px}
+.vumsg.on{display:block}
+.vumsg.warn{background:var(--amber-soft);border:1px solid #f3dfb4;color:#7a5b02}
+.vumsg.bad{background:var(--red-soft);border:1px solid #f5cdce;color:#c1272d}
+.vumsg.good{background:var(--green-soft);border:1px solid #c3e7d0;color:#146c43}
+.vumsg a{color:inherit;font-weight:800}
+@media(max-width:640px){.vurl .ub{padding:10px 13px}}
+
 </style></head><body>
 <div class="ghpill" id="ghpill" title="Стан синхронізації з GitHub"><span class="d"></span><span class="tx" id="ghtx">перевіряю…</span></div>
 <div class="adminbtn" id="adminbtn"><span class="dot"></span><span class="lab">Адмін<span class="sub" id="astate">перегляд</span></span></div>
@@ -697,10 +717,17 @@ body.admin .treeadmin{display:flex}
  </section>
 
  <section class="view" id="view-val">
+  <div class="vurl">
+   <span class="ui"><span class="lk">🔗</span>
+    <input id="v-url" type="text" placeholder="посилання на фід — https://… .xml або .php" autocomplete="off" spellcheck="false"></span>
+   <button class="ub pri" id="v-urlgo">Завантажити й перевірити</button>
+   <button class="ub" id="v-urlsave">Зберегти файл</button>
+  </div>
+  <div class="vumsg" id="v-umsg"></div>
   <label class="vdrop" id="v-drop">
    <input type="file" id="v-file" accept=".xml,text/xml,application/xml">
    <span class="vic">📥</span>
-   <span class="vd1">Перетягни XML-фід сюди або клікни, щоб вибрати файл (для валідації іншого фіда, просто додай сюди його фід)</span>
+   <span class="vd1">Перетягни XML-фід сюди або клікни, щоб вибрати файл</span>
    <span class="vd2" id="v-fname">Файл не вибрано · обробка локальна, нічого не завантажується на сервер</span>
   </label>
   <div class="vprog" id="v-progress">
@@ -1846,9 +1873,10 @@ function vStage(n,label,extra){
 function vProgress(frac,offers,ms){
  const pct=Math.max(0,Math.min(100,Math.round(frac*100)));
  const bar=document.getElementById('v-bar');
- if(bar)bar.style.width=pct+'%';
+ if(bar)bar.style.width=(VNOSIZE?Math.min(95,Math.round(offers/500)):pct)+'%';
  const t=document.getElementById('v-ptext');
- if(t)t.textContent='Аналіз товарів · '+pct+'% · '+fnum(offers)+' товарів · '+(ms/1000).toFixed(0)+' с';
+ if(t)t.textContent='Аналіз товарів · '+(VNOSIZE?'':pct+'% · ')
+   +fnum(offers)+' товарів · '+(ms/1000).toFixed(0)+' с';
  if(offers>0)vStage(3,'Аналіз товарів');
 }
 
@@ -2180,7 +2208,10 @@ function vExportPics(){
 async function vHandleFile(file){
  if(!file||VBUSY)return;
  VBUSY=true; VABORT=false;
- document.getElementById('v-fname').textContent=file.name+' · '+(file.size/1048576).toFixed(1)+' МБ';
+ VNOSIZE=!file.size;
+ document.getElementById('v-fname').textContent=file.name+' · '
+   +(file.size?(file.size/1048576).toFixed(1)+' МБ':'розмір невідомий')
+   +(file.how?' · '+file.how:'');
  document.getElementById('v-empty').style.display='none';
  document.getElementById('v-report').style.display='none';
  document.getElementById('v-progress').style.display='block';
@@ -2191,7 +2222,7 @@ async function vHandleFile(file){
  document.getElementById('v-hotline').classList.remove('on');
  vStage(1,'Читаю файл');
  try{
-   const hl=hotlineInfo(await sniffHead(file));
+   const hl=hotlineInfo(file.head!==undefined?file.head:await sniffHead(file));
    if(hl){vShowHotline(file,hl);VBUSY=false;return;}
    const r=await validateFile(file);
    vStage(4,'Готово',fnum(r.total)+' товарів за '+(r.ms/1000).toFixed(1)+' с');
@@ -2960,6 +2991,106 @@ document.getElementById('trimp').addEventListener('change',e=>{
  const f=e.target.files&&e.target.files[0];if(f)trPush(f);e.target.value='';});
 
 ghBoot();
+
+/* ==================================================================
+   ФІД ЗА ПОСИЛАННЯМ
+   ================================================================== */
+const FEEDPROXY='https://orange-king-90db.valerii-petrov.workers.dev/';
+let VNOSIZE=false;
+
+function vUmsg(kind,html){
+ const e=document.getElementById('v-umsg');
+ if(!e)return;
+ e.className='vumsg'+(kind?' on '+kind:'');
+ e.innerHTML=html||'';
+}
+function vNormUrl(v){
+ let u=(v||'').trim();
+ if(!u)return '';
+ if(!/^https?:\/\//i.test(u))u='https://'+u;
+ try{const x=new URL(u);if(!x.hostname||x.hostname.indexOf('.')<0)return '';return x.toString();}
+ catch(e){return '';}
+}
+/* спершу напряму, потім через проксі */
+async function vFeedFetch(url){
+ const tries=[{how:'напряму',u:url}];
+ if(FEEDPROXY)tries.push({how:'через проксі',u:FEEDPROXY+'?url='+encodeURIComponent(url)});
+ let last='';
+ for(let i=0;i<tries.length;i++){
+  const t=tries[i];
+  let r;
+  try{r=await fetch(t.u,{cache:'no-store',redirect:'follow'});}
+  catch(e){last=(i===0?'домен не дозволяє читати з браузера':'проксі недоступне');continue;}
+  if(!r.ok){
+   let m='';try{const j=await r.clone().json();m=j.error||'';}catch(e){}
+   last='відповідь '+r.status+(m?' — '+m:'');continue;
+  }
+  if(!r.body){last='браузер не віддав потік';continue;}
+  return {resp:r,how:t.how};
+ }
+ throw new Error(last||'не вдалось завантажити');
+}
+/* джерело для валідатора з того самого інтерфейсу, що й File */
+async function vUrlSource(url){
+ const got=await vFeedFetch(url);
+ const resp=got.resp;
+ const size=+(resp.headers.get('Content-Length')||0);
+ const rd=resp.body.getReader();
+ const pre=[];let bytes=0;
+ while(bytes<262144){
+  const x=await rd.read();
+  if(x.done)break;
+  pre.push(x.value);bytes+=(x.value.byteLength||x.value.length||0);
+ }
+ const dec=new TextDecoder('utf-8');
+ let head='';
+ pre.forEach(u=>{head+=dec.decode(u,{stream:true});});
+ let name=url.split(/[?#]/)[0].split('/').filter(Boolean).pop()||'feed.xml';
+ name=decodeURIComponent(name).slice(0,70);
+ return {
+  name:name,size:size,head:head.slice(0,300000),how:got.how,srcUrl:url,
+  stream(){
+   let i=0;
+   return new ReadableStream({
+    async pull(c){
+     if(i<pre.length){c.enqueue(pre[i++]);return;}
+     let x;
+     try{x=await rd.read();}catch(e){c.error(e);return;}
+     if(x.done){c.close();return;}
+     c.enqueue(x.value);
+    },
+    cancel(r){try{rd.cancel(r);}catch(e){}}
+   });
+  }};
+}
+async function vFromUrl(){
+ const inp=document.getElementById('v-url');
+ const btn=document.getElementById('v-urlgo');
+ const url=vNormUrl(inp.value);
+ if(!url){vUmsg('bad','Схоже, це не посилання. Потрібен повний URL фіда.');return;}
+ inp.value=url;
+ vUmsg('warn','Забираю фід…');
+ btn.disabled=true;btn.textContent='Забираю…';
+ try{
+  const src=await vUrlSource(url);
+  vUmsg('good','Фід отримано '+src.how
+   +(src.size?' · '+(src.size/1048576).toFixed(1)+' МБ':' · розмір не вказано'));
+  await vHandleFile(src);
+ }catch(e){
+  vUmsg('bad','Не вдалось: '+esc(e.message)
+   +'. <a href="'+esc(url)+'" target="_blank" rel="noopener">Відкрити посилання</a> — збережи файл і перетягни його сюди.');
+ }
+ btn.disabled=false;btn.textContent='Завантажити й перевірити';
+}
+function vSaveUrl(){
+ const url=vNormUrl(document.getElementById('v-url').value);
+ if(!url){vUmsg('bad','Схоже, це не посилання. Потрібен повний URL фіда.');return;}
+ window.open(url,'_blank','noopener');
+ vUmsg('warn','Відкрив посилання в новій вкладці. Збережи файл і перетягни його в панель.');
+}
+document.getElementById('v-urlgo').addEventListener('click',vFromUrl);
+document.getElementById('v-urlsave').addEventListener('click',vSaveUrl);
+document.getElementById('v-url').addEventListener('keydown',e=>{if(e.key==='Enter')vFromUrl();});
 
 </script>
 </body></html>
