@@ -641,6 +641,12 @@ body.admin .treeadmin{display:flex}
 .vpstat.bad{color:var(--red)}
 .vpstat.warn{color:var(--amber)}
 
+.vpstat.multi{display:inline-flex;align-items:center;gap:9px;flex-wrap:wrap}
+.vpstat.multi .done{color:var(--muted)}
+.vpstat.multi .bad{color:var(--red);font-weight:800}
+.vpstat.multi .good{color:var(--green);font-weight:800}
+.vpstat.multi .zero{color:var(--dim)}
+
 </style></head><body>
 <div class="ghpill" id="ghpill" title="Стан синхронізації з GitHub"><span class="d"></span><span class="tx" id="ghtx">перевіряю…</span></div>
 <div class="adminbtn" id="adminbtn"><span class="dot"></span><span class="lab">Адмін<span class="sub" id="astate">перегляд</span></span></div>
@@ -802,7 +808,7 @@ body.admin .treeadmin{display:flex}
     <span class="sf" id="v-expids">⇣ id · code · title · vendor</span>
     <span class="sf" id="v-picbtn">Перевірити фото</span>
     <span class="vpstat" id="v-picstat"></span>
-    <span class="sf" id="v-picexp" hidden>⇣ Звіт по фото CSV</span>
+    <span class="sf" id="v-picexp" hidden>⇣ Фото: розміри й помилки</span>
     <span class="vpstat" id="v-pichint"></span>
    </div>
    <div class="vgal" id="v-gal">
@@ -2255,7 +2261,8 @@ async function vCheckPhotos(){
  vApplyPicResults();
  btn.classList.remove('busy');
  btn.textContent=VABORT?'Продовжити перевірку фото':'Перевірити фото ще раз';
- document.getElementById('v-picexp').hidden=false;
+ const exp=document.getElementById('v-picexp');
+ exp.hidden=false;exp.style.display='';   // vHandleFile ставив inline display:none
  VBUSY=false;
 }
 /* результат по унікальних URL розкидаємо на всі товари, що їх використовують */
@@ -2304,9 +2311,12 @@ function vApplyPicResults(){
  VRES.issues=VRES.issues.filter(i=>i.code!=='PIC_SMALL'&&i.code!=='PIC_DEAD').concat(extra);
  vRender(VRES);
  const okN=checked-small.length-dead.length;
- stat.textContent='перевірено '+scope+' · замалих '+fnum(small.length)
-   +' · недоступних '+fnum(dead.length)+' · ок '+fnum(okN);
- stat.className='vpstat '+(small.length||dead.length?'bad':'good');
+ const part=(n,label,cls)=>'<span class="'+(n?cls:'zero')+'">'+label+' '+fnum(n)+'</span>';
+ stat.className='vpstat multi';
+ stat.innerHTML='<span class="done">✓ перевірено '+esc(scope)+'</span>'
+   +part(small.length,'замалих','bad')
+   +part(dead.length,'недоступних','bad')
+   +part(okN,'ок','good');
 }
 function vExportPics(){
  if(!VPIC)return;
@@ -2314,7 +2324,7 @@ function vExportPics(){
  const rows=[['picture_url','status','width','height','products','product_ids']];
  VPIC.forEach(x=>{
    const pids=byUrl.get(x.url)||[];
-   rows.push([x.url,x.status,x.w,x.h,pids.length,pids.slice(0,50).join(' ')]);
+   rows.push([x.url,x.status,x.w,x.h,pids.length,pids.join(' ')]);
  });
  vDownload(vCsv(rows),'picture-report.csv');
 }
