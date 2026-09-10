@@ -629,6 +629,18 @@ body.admin .treeadmin{display:flex}
 .vsrc .vdrop .vhint b{font-weight:800}
 @media(max-width:900px){.vsrc .vdrop .vhint{margin-left:0;max-width:none}}
 
+/* ---- CSS: кнопки перевірки фото ---- */
+.vactions #v-picbtn{background:var(--purple);color:#fff;font-weight:700;padding:6px 14px}
+.vactions #v-picbtn:hover{background:#5a3fd0;color:#fff}
+.vactions #v-picbtn.busy{background:var(--amber-soft);color:#8a5c02;box-shadow:inset 0 0 0 1px #f0dcae}
+.vactions #v-picbtn.busy:hover{background:#fbecd0;color:#7a5102}
+.vactions #v-picexp{background:var(--blue-soft);color:var(--blue);font-weight:700;box-shadow:inset 0 0 0 1px #d2e0fb}
+.vactions #v-picexp:hover{background:#dbe8fe;color:#1d55c9}
+.vactions #v-picexp[hidden]{display:none}
+.vpstat.good{color:var(--green)}
+.vpstat.bad{color:var(--red)}
+.vpstat.warn{color:var(--amber)}
+
 </style></head><body>
 <div class="ghpill" id="ghpill" title="Стан синхронізації з GitHub"><span class="d"></span><span class="tx" id="ghtx">перевіряю…</span></div>
 <div class="adminbtn" id="adminbtn"><span class="dot"></span><span class="lab">Адмін<span class="sub" id="astate">перегляд</span></span></div>
@@ -755,7 +767,7 @@ body.admin .treeadmin{display:flex}
     <span class="vic">📥</span>
     <span class="vdt"><span class="vd1">Перетягни файл сюди або клікни, щоб вибрати</span>
      <span class="vd2" id="v-fname">Файл не вибрано · обробка локальна, нічого не йде на сервер</span></span>
-    <span class="vhint">Щоб перевірити <b>інший фід</b> — просто додай новий файл, аналіз перезапуститься. Якщо завантажений файл з фідом не відкривається на ПК, спробуйте змінити розширення на <b>txt</b>(це не стосується валідатора!)</span>
+    <span class="vhint">Щоб перевірити <b>інший фід</b> — просто додай новий файл, аналіз перезапуститься</span>
    </label>
   </div>
   <div class="vprog" id="v-progress">
@@ -1731,7 +1743,10 @@ function processOffer(xml,ctx){
  if(urls.length===0){I.noPhoto.add(ref,'');hitE('photo');}
  else if(urls.length>V.PHOTO_MAX){I.photoMany.add(ref,urls.length+' фото');hitW('photo');}
  else if(urls.length===1){I.photoFew.add(ref,'1 фото');hitW('photo');}
- if(ctx.pics.length<V.MAX_PICS&&urls.length)ctx.pics.push({pid:pid,urls:urls.slice(0,V.PHOTO_MAX+5)});
+ if(urls.length){
+   if(ctx.pics.length<V.MAX_PICS)ctx.pics.push({pid:pid,urls:urls.slice(0,V.PHOTO_MAX+5)});
+   else ctx.picsTrunc=(ctx.picsTrunc||0)+1;
+ }
 
  /* опис */
  if(!fhas(o,VF.desc)){I.noDesc.add(ref,'');hitE('desc');}
@@ -1784,7 +1799,7 @@ function finalize(ctx){
    errPct:ctx.total?ctx.badE[k]/ctx.total:0,warnPct:ctx.total?ctx.badW[k]/ctx.total:0});
  const scores={photo:st('photo'),title:st('title'),desc:st('desc'),req:st('req')};
  return {total:ctx.total,issues:ctx.issues.filter(i=>i.count>0),cats:cats,ids:ctx.ids,pics:ctx.pics,
-   picCount:pn,catDict:ctx.catDict.size,scores:scores};
+   picCount:pn,picsTrunc:ctx.picsTrunc||0,catDict:ctx.catDict.size,scores:scores};
 }
 
 /* ================= потокове читання ================= */
@@ -1930,7 +1945,10 @@ function vRender(r){
  wrapEl.innerHTML=h;
  vGalReset();
  const pn=r.picCount||0;
+ const uniqN=new Set();(r.pics||[]).forEach(p=>p.urls.forEach(u=>uniqN.add(u)));
  document.getElementById('v-pichint').textContent=fnum(pn)+' посилань на фото'
+   +(uniqN.size&&uniqN.size<pn?' · '+fnum(uniqN.size)+' унікальних':'')
+   +(r.picsTrunc?' · '+fnum(r.picsTrunc)+' товарів не влізли в ліміт':'')
    +(r.ms?' · розбір '+(r.ms/1000).toFixed(1)+' с':'');
 }
 function vCol(pct){return pct>=90?'#16a34a':pct>=75?'#2f6fed':pct>=50?'#d98a04':'#e5484d';}
@@ -2144,51 +2162,7 @@ document.getElementById('v-galh').addEventListener('click',e=>{
  if(!wasOpen&&!document.getElementById('v-galgrid').innerHTML)vRenderGallery();
 });
 
-/* ================= глибока перевірка фото ================= */
-async function vCheckPhotos(){
- if(!VRES||VBUSY)return;
- VBUSY=true;
- const btn=document.getElementById('v-picbtn'); btn.textContent='Перевіряю…';
- const jobs=[]; VRES.pics.forEach(p=>p.urls.forEach(u=>jobs.push({pid:p.pid,url:u})));
- const LIMIT=3000;
- const sample=jobs.length>LIMIT?jobs.filter((x,i)=>i%Math.ceil(jobs.length/LIMIT)===0):jobs;
- const out=[]; const CONC=8;
- async function one(j){
-   if(!vImgOk(j.url,false)){out.push({pid:j.pid,url:j.url,status:'некоректна адреса',w:'',h:''});return;}
-   try{
-     const d=await new Promise((res,rej)=>{
-       const im=new Image(); let done=false;
-       im.onload=()=>{done=true;res({w:im.naturalWidth||im.width,h:im.naturalHeight||im.height});};
-       im.onerror=()=>{done=true;rej(new Error('err'));};
-       im.src=j.url;
-       setTimeout(()=>{if(!done)rej(new Error('timeout'));},15000);
-     });
-     const max=Math.max(d.w,d.h);
-     out.push({pid:j.pid,url:j.url,status:max<V.PHOTO_MIN_PX?('менше '+V.PHOTO_MIN_PX+'px'):'ок',w:d.w,h:d.h,small:max<V.PHOTO_MIN_PX});
-   }catch(err){out.push({pid:j.pid,url:j.url,status:'недоступне',w:'',h:''});}
- }
- for(let i=0;i<sample.length;i+=CONC){
-   await Promise.all(sample.slice(i,i+CONC).map(one));
-   document.getElementById('v-picstat').textContent=Math.min(sample.length,i+CONC)+' / '+sample.length
-     +(sample.length<jobs.length?' (вибірка з '+fnum(jobs.length)+')':'');
- }
- VPIC=out;
- const small=out.filter(x=>x.small), dead=out.filter(x=>x.status==='недоступне');
- const extra=[];
- const mk=(sev,code,title,hint,items)=>({sev:sev,code:code,title:title,hint:hint,count:items.length,items:items});
- if(small.length)extra.push(mk('error','PIC_SMALL','Фото менше '+V.PHOTO_MIN_PX+'px по довшій стороні','',
-   small.map(x=>({pid:x.pid,d:x.w+'×'+x.h+' — '+x.url.slice(0,80)}))));
- if(dead.length)extra.push(mk('error','PIC_DEAD','Недоступні фото','Перевір whitelist наших IP',
-   dead.map(x=>({pid:x.pid,d:x.url.slice(0,100)}))));
- VRES.issues=VRES.issues.filter(i=>i.code!=='PIC_SMALL'&&i.code!=='PIC_DEAD').concat(extra);
- vRender(VRES);
- document.getElementById('v-picstat').textContent='готово: '+fnum(small.length)+' замалих, '+fnum(dead.length)+' недоступних';
- btn.textContent='Перевірити фото ще раз';
- document.getElementById('v-picexp').style.display='inline-block';
- VBUSY=false;
-}
-
-/* ================= експорти ================= */
+/* ================= експорти CSV ================= */
 function vCsv(rows){return rows.map(r=>r.map(c=>{
  const s=(c==null?'':''+c);
  return /[",;\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s;}).join(';')).join('\n');}
@@ -2200,25 +2174,24 @@ function vDownload(text,name){
 function vExportSection(code){
  if(!VRES)return;
  if(code==='CATS'){
-   vDownload(vCsv([['category','count']].concat(
-     VRES.cats.map(c=>[c.name,c.count]))),'categories.csv');
+   vDownload(vCsv([['category','count','known','leaf']].concat(
+     VRES.cats.map(c=>[c.name,c.count,c.known?'так':'ні',c.leaf?'так':'ні']))),'categories.csv');
    return;
  }
  const iss=VRES.issues.filter(i=>i.code===code)[0]; if(!iss)return;
- vDownload(vCsv([['severity','check','id','code','title','details']].concat(
-   iss.items.map(x=>[iss.sev,iss.title,(x.r||{}).id||'',(x.r||{}).code||'',(x.r||{}).title||'',x.d||'']))),
-   'issue-'+code.toLowerCase()+'.csv');
+ vDownload(vCsv([['severity','check','product_id','details']].concat(
+   iss.items.map(x=>[iss.sev,iss.title,x.pid,x.d||'']))),'issue-'+code.toLowerCase()+'.csv');
 }
 function vExportAll(){
  if(!VRES)return;
- const rows=[['severity','check','id','code','title','details']];
- VRES.issues.forEach(i=>i.items.forEach(x=>rows.push([i.sev,i.title,(x.r||{}).id||'',(x.r||{}).code||'',(x.r||{}).title||'',x.d||''])));
+ const rows=[['severity','check','product_id','details']];
+ VRES.issues.forEach(i=>i.items.forEach(x=>rows.push([i.sev,i.title,x.pid,x.d||''])));
  vDownload(vCsv(rows),'feed-report.csv');
 }
 function vExportSummary(){
  if(!VRES)return;
  const rows=[['severity','check','count']];
- vSortIssues(VRES.issues).forEach(i=>rows.push([i.sev,i.title,i.count]));
+ VRES.issues.slice().sort((a,b)=>b.count-a.count).forEach(i=>rows.push([i.sev,i.title,i.count]));
  vDownload(vCsv(rows),'feed-summary.csv');
 }
 function vExportIds(){
@@ -2226,10 +2199,124 @@ function vExportIds(){
  vDownload(vCsv([['id','code','title','vendor_code','barcode']].concat(
    VRES.ids.map(x=>[x.pid,x.code,x.title,x.vendor,x.barcode]))),'id-code-title-vendor.csv');
 }
+
+/* ================= глибока перевірка фото ================= */
+/* Кожне посилання перевіряємо РАЗ, скільки б товарів його не використовувало.
+   У фідах з шинами чи запчастинами одна картинка йде на десятки SKU. */
+function vPicIndex(){
+ const byUrl=new Map();          // url -> [pid, pid, …]
+ let refs=0;
+ (VRES.pics||[]).forEach(p=>p.urls.forEach(u=>{
+   refs++;
+   if(!byUrl.has(u))byUrl.set(u,[]);
+   const l=byUrl.get(u);
+   if(l.length<400)l.push(p.pid);   // хвіст не тримаємо, він у звіті не потрібен
+ }));
+ return {byUrl:byUrl,refs:refs};
+}
+let VPICMAP=null;
+async function vCheckPhotos(){
+ if(!VRES||VBUSY)return;
+ VBUSY=true;VABORT=false;
+ const btn=document.getElementById('v-picbtn');
+ const stat=document.getElementById('v-picstat');
+ btn.classList.add('busy');
+ const idx=vPicIndex();
+ VPICMAP=idx;
+ const urls=[...idx.byUrl.keys()];
+ const out=[];const CONC=10;
+ const t0=Date.now();
+ async function one(u){
+   if(!vImgOk(u,false)){out.push({url:u,status:'некоректна адреса',w:'',h:''});return;}
+   try{
+     const d=await new Promise((res,rej)=>{
+       const im=new Image();let done=false;
+       im.onload=()=>{done=true;res({w:im.naturalWidth||im.width,h:im.naturalHeight||im.height});};
+       im.onerror=()=>{done=true;rej(new Error('err'));};
+       im.src=u;
+       setTimeout(()=>{if(!done)rej(new Error('timeout'));},15000);
+     });
+     const max=Math.max(d.w,d.h);
+     out.push({url:u,w:d.w,h:d.h,small:max<V.PHOTO_MIN_PX,
+       status:max<V.PHOTO_MIN_PX?('менше '+V.PHOTO_MIN_PX+'px'):'ок'});
+   }catch(err){out.push({url:u,status:'недоступне',w:'',h:''});}
+ }
+ for(let i=0;i<urls.length;i+=CONC){
+   if(VABORT)break;
+   await Promise.all(urls.slice(i,i+CONC).map(one));
+   const done=Math.min(urls.length,i+CONC);
+   const sec=(Date.now()-t0)/1000;
+   const eta=done>40?Math.round(sec/done*(urls.length-done)):0;
+   btn.textContent='Стоп · '+fnum(done)+' / '+fnum(urls.length);
+   stat.textContent=fnum(done)+' з '+fnum(urls.length)+' унікальних фото'
+     +(eta>2?' · ще ~'+(eta>90?Math.round(eta/60)+' хв':eta+' с'):'');
+ }
+ VPIC=out;
+ vApplyPicResults();
+ btn.classList.remove('busy');
+ btn.textContent=VABORT?'Продовжити перевірку фото':'Перевірити фото ще раз';
+ document.getElementById('v-picexp').hidden=false;
+ VBUSY=false;
+}
+/* результат по унікальних URL розкидаємо на всі товари, що їх використовують */
+function vApplyPicResults(){
+ const byUrl=VPICMAP?VPICMAP.byUrl:new Map();
+ const stat=document.getElementById('v-picstat');
+ const mkItems=list=>{
+   const items=[];const seen=new Set();
+   list.forEach(x=>{
+     const pids=byUrl.get(x.url)||[''];
+     const dim=(x.w?x.w+'×'+x.h:x.status)+' — '+x.url.slice(0,80)
+       +(pids.length>1?' · ще '+(pids.length-1)+' товар'+(pids.length-1>1?'ів':''):'');
+     pids.forEach(pid=>{
+       if(items.length>=V.MAX_ITEMS)return;
+       const k=pid+'|'+x.url;
+       if(seen.has(k))return;seen.add(k);
+       items.push({pid:pid,d:dim});
+     });
+   });
+   return items;
+ };
+ const cntProducts=list=>{
+   const s=new Set();
+   list.forEach(x=>(byUrl.get(x.url)||[]).forEach(p=>s.add(p)));
+   return s.size;
+ };
+ const small=VPIC.filter(x=>x.small);
+ const dead=VPIC.filter(x=>x.status==='недоступне'||x.status==='некоректна адреса');
+ const checked=VPIC.length, uniq=byUrl.size, refs=VPICMAP?VPICMAP.refs:0;
+ const scope=fnum(checked)+' з '+fnum(uniq)+' унікальних фото'
+   +(refs>uniq?' ('+fnum(refs)+' посилань у фіді)':'');
+ const extra=[];
+ /* count — справжня кількість товарів; items обрізані лімітом на приклади */
+ const mk=(sev,code,title,hint,list)=>{
+   const items=mkItems(list), n=cntProducts(list);
+   return {sev:sev,code:code,title:title,count:n,items:items,
+     hint:hint+(items.length<n?'. У списку перші '+fnum(items.length)+' рядків':'')};
+ };
+ if(small.length)extra.push(mk('error','PIC_SMALL',
+   'Фото менше '+V.PHOTO_MIN_PX+'px по довшій стороні — '
+     +fnum(cntProducts(small))+' товарів, '+fnum(small.length)+' унікальних фото',
+   'Перевірено '+scope, small));
+ if(dead.length)extra.push(mk('error','PIC_DEAD',
+   'Недоступні фото — '+fnum(cntProducts(dead))+' товарів, '+fnum(dead.length)+' унікальних посилань',
+   'Перевірено '+scope+'. Якщо все підряд недоступне — перевір whitelist наших IP', dead));
+ VRES.issues=VRES.issues.filter(i=>i.code!=='PIC_SMALL'&&i.code!=='PIC_DEAD').concat(extra);
+ vRender(VRES);
+ const okN=checked-small.length-dead.length;
+ stat.textContent='перевірено '+scope+' · замалих '+fnum(small.length)
+   +' · недоступних '+fnum(dead.length)+' · ок '+fnum(okN);
+ stat.className='vpstat '+(small.length||dead.length?'bad':'good');
+}
 function vExportPics(){
  if(!VPIC)return;
- vDownload(vCsv([['product_id','picture_url','status','width','height']].concat(
-   VPIC.map(x=>[x.pid,x.url,x.status,x.w,x.h]))),'picture-report.csv');
+ const byUrl=VPICMAP?VPICMAP.byUrl:new Map();
+ const rows=[['picture_url','status','width','height','products','product_ids']];
+ VPIC.forEach(x=>{
+   const pids=byUrl.get(x.url)||[];
+   rows.push([x.url,x.status,x.w,x.h,pids.length,pids.slice(0,50).join(' ')]);
+ });
+ vDownload(vCsv(rows),'picture-report.csv');
 }
 
 /* ================= події ================= */
@@ -2271,7 +2358,10 @@ vdrop.addEventListener('drop',e=>{
 document.getElementById('v-expall').addEventListener('click',vExportAll);
 document.getElementById('v-expsum').addEventListener('click',vExportSummary);
 document.getElementById('v-expids').addEventListener('click',vExportIds);
-document.getElementById('v-picbtn').addEventListener('click',vCheckPhotos);
+document.getElementById('v-picbtn').addEventListener('click',()=>{
+ if(VBUSY&&document.getElementById('v-picbtn').classList.contains('busy')){VABORT=true;return;}
+ vCheckPhotos();
+});
 document.getElementById('v-picexp').addEventListener('click',vExportPics);
 document.addEventListener('click',e=>{
  const gg=e.target.closest('[data-gauge]');
