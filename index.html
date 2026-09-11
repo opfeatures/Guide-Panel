@@ -2129,12 +2129,13 @@ function vRenderGallery(){
  box.classList.toggle('on',pool.length>0);
  if(!pool.length){grid.innerHTML='';return;}
  GAL=vGalSample(12);
+ if(!VPICRUN)VPICRUN=Date.now();
  const byId={};
  (VRES.ids||[]).forEach(x=>{byId[x.pid]=x;});
  grid.innerHTML=GAL.map((g,k)=>{
    const rec=byId[g.id]||{};
    return '<a class="vgcard" href="'+vesc(g.url)+'" target="_blank" rel="noopener">'
-    +'<img class="vgimg" data-k="'+k+'" loading="lazy" src="'+vesc(g.url)+'" alt="">'
+    +'<img class="vgimg" data-k="'+k+'" loading="lazy" src="'+vesc(vPicBust(g.url))+'" alt="">'
     +'<span class="vgmeta"><span class="vgid">'+vesc(g.id)+(rec.code?' · '+vesc(rec.code):'')+'</span>'
     +'<span class="vgtitle">'+vesc((rec.title||'').slice(0,70))+'</span>'
     +'<span class="vgdim" data-dim="'+k+'">розміри…</span></span></a>';
@@ -2220,7 +2221,13 @@ function vPicIndex(){
  }));
  return {byUrl:byUrl,refs:refs};
 }
-let VPICMAP=null;
+let VPICMAP=null, VPICRUN=0;
+/* кеш браузера ключується по URL, тому підміна файла за старим посиланням не видна.
+   Додаємо свій параметр — і бачимо те, що на сервері зараз. */
+function vPicBust(u){
+ if(!VPICRUN)return u;
+ return u+(u.indexOf('?')>=0?'&':'?')+'_mmcb='+VPICRUN;
+}
 async function vCheckPhotos(){
  if(!VRES||VBUSY)return;
  VBUSY=true;VABORT=false;
@@ -2229,23 +2236,28 @@ async function vCheckPhotos(){
  btn.classList.add('busy');
  const idx=vPicIndex();
  VPICMAP=idx;
+ VPICRUN=Date.now();          // свій маркер на кожен запуск — обходить кеш браузера
  const urls=[...idx.byUrl.keys()];
  const out=[];const CONC=10;
  const t0=Date.now();
+ const measure=(src)=>new Promise((res,rej)=>{
+   const im=new Image();let done=false;
+   im.onload=()=>{done=true;res({w:im.naturalWidth||im.width,h:im.naturalHeight||im.height});};
+   im.onerror=()=>{done=true;rej(new Error('err'));};
+   im.src=src;
+   setTimeout(()=>{if(!done)rej(new Error('timeout'));},15000);
+ });
  async function one(u){
    if(!vImgOk(u,false)){out.push({url:u,status:'некоректна адреса',w:'',h:''});return;}
-   try{
-     const d=await new Promise((res,rej)=>{
-       const im=new Image();let done=false;
-       im.onload=()=>{done=true;res({w:im.naturalWidth||im.width,h:im.naturalHeight||im.height});};
-       im.onerror=()=>{done=true;rej(new Error('err'));};
-       im.src=u;
-       setTimeout(()=>{if(!done)rej(new Error('timeout'));},15000);
-     });
-     const max=Math.max(d.w,d.h);
-     out.push({url:u,w:d.w,h:d.h,small:max<V.PHOTO_MIN_PX,
-       status:max<V.PHOTO_MIN_PX?('менше '+V.PHOTO_MIN_PX+'px'):'ок'});
-   }catch(err){out.push({url:u,status:'недоступне',w:'',h:''});}
+   let d=null;
+   /* спершу з обхідником кешу, бо мерчант міг підмінити файл за тим самим URL.
+      Якщо хост не любить сторонні параметри — пробуємо чисте посилання. */
+   try{d=await measure(vPicBust(u));}
+   catch(e1){try{d=await measure(u);}catch(e2){}}
+   if(!d){out.push({url:u,status:'недоступне',w:'',h:''});return;}
+   const max=Math.max(d.w,d.h);
+   out.push({url:u,w:d.w,h:d.h,small:max<V.PHOTO_MIN_PX,
+     status:max<V.PHOTO_MIN_PX?('менше '+V.PHOTO_MIN_PX+'px'):'ок'});
  }
  for(let i=0;i<urls.length;i+=CONC){
    if(VABORT)break;
@@ -2293,7 +2305,7 @@ function vApplyPicResults(){
  const dead=VPIC.filter(x=>x.status==='недоступне'||x.status==='некоректна адреса');
  const checked=VPIC.length, uniq=byUrl.size, refs=VPICMAP?VPICMAP.refs:0;
  const scope=fnum(checked)+' з '+fnum(uniq)+' унікальних фото'
-   +(refs>uniq?' ('+fnum(refs)+' посилань у фіді)':'');
+   +(refs>uniq?' ('+fnum(refs)+' посилань у фіді)':'')+', в обхід кешу';
  const extra=[];
  /* count — справжня кількість товарів; items обрізані лімітом на приклади */
  const mk=(sev,code,title,hint,list)=>{
@@ -2341,7 +2353,7 @@ async function vHandleFile(file){
  document.getElementById('v-report').style.display='none';
  document.getElementById('v-progress').style.display='block';
  document.getElementById('v-bar').style.width='0%';
- VPIC=null;
+ VPIC=null;VPICMAP=null;VPICRUN=0;
  document.getElementById('v-picexp').style.display='none';
  document.getElementById('v-picstat').textContent='';
  document.getElementById('v-hotline').classList.remove('on');
