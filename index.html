@@ -406,6 +406,9 @@ body.dragmode [contenteditable]{pointer-events:none}
 .vrow.prod .c2.dim{background:none;color:#cfd3dd;padding:0}
 .vrow.prod .vtl{font-size:12px;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .vrow.prod .vdt{font-size:12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis}
+.vrow.prod.vhead{position:sticky;top:0;z-index:1;background:var(--card);padding:2px 0 6px;border-bottom:1px solid var(--line);
+ font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:var(--dim);align-items:center}
+.vrow.prod.vhead span{font-size:10.5px;color:var(--dim);padding:0}
 .vrow.cat{display:grid;grid-template-columns:1fr 80px;gap:9px;align-items:center}
 @media(max-width:1200px){.vrow.prod{grid-template-columns:1fr 1fr;row-gap:2px}}
 
@@ -2072,12 +2075,30 @@ function vSection(iss){
   +'<span class="vn '+iss.sev+'">'+fnum(iss.count)+'</span>'
   +'<span class="vexp" data-vexport="'+iss.code+'">⇣ CSV</span></div>'
   +'<div class="vsb">'+(iss.hint?'<div class="vhint">'+iss.hint+'</div>':'')
-  +'<div class="vlist">'+shown.map(vRow).join('')
+  +'<div class="vlist">'+(shown.length?'<div class="vrow prod vhead"><span>ID</span><span>Code</span><span>Назва</span><span>Проблема</span></div>':'')
+  +shown.map(vRow).join('')
   +(hidden>0?'<div class="vmore">…і ще '+fnum(hidden)+(iss.count>V.MAX_ITEMS?' (у CSV перші '+fnum(V.MAX_ITEMS)+')':' — вигрузи CSV')+'</div>':'')
   +'</div></div></div>';
 }
+/* єдиний спосіб дістати id / code / title знахідки: звичайні перевірки зберігають {r:{id,code,title}},
+   фото-перевірки — {pid}, тож code і title добираємо з VRES.ids */
+function vRef(x){
+ if(x&&x.r)return x.r;
+ const pid=x&&x.pid!=null?x.pid:'';
+ if(VRES&&!VRES._byId){VRES._byId=new Map();(VRES.ids||[]).forEach(o=>{VRES._byId.set(o.pid,o);});}
+ const o=(VRES&&VRES._byId&&VRES._byId.get(pid))||{};
+ return {id:pid,code:o.code||'',title:o.title||''};
+}
+/* рядки CSV для однієї знахідки: id і code товару. Для дублів — по рядку на кожен товар групи */
+function vCsvRows(iss,x){
+ if(x.list&&x.list.length){
+  return x.list.map(pid=>{const r=vRef({pid:pid});return [iss.sev,iss.title,r.id,r.code,x.d||''];});
+ }
+ const r=vRef(x);
+ return [[iss.sev,iss.title,r.id,r.code,x.d||'']];
+}
 function vRow(x){
- const r=x.r||{id:'',code:'',title:''};
+ const r=vRef(x);
  return '<div class="vrow prod">'
   +'<code title="id">'+vesc(r.id)+'</code>'
   +(r.code?'<code class="c2" title="code">'+vesc(r.code)+'</code>':'<span class="c2 dim">—</span>')
@@ -2186,13 +2207,14 @@ function vExportSection(code){
    return;
  }
  const iss=VRES.issues.filter(i=>i.code===code)[0]; if(!iss)return;
- vDownload(vCsv([['severity','check','product_id','details']].concat(
-   iss.items.map(x=>[iss.sev,iss.title,x.pid,x.d||'']))),'issue-'+code.toLowerCase()+'.csv');
+ const rows=[['severity','check','product_id','code','details']];
+ iss.items.forEach(x=>vCsvRows(iss,x).forEach(r=>rows.push(r)));
+ vDownload(vCsv(rows),'issue-'+code.toLowerCase()+'.csv');
 }
 function vExportAll(){
  if(!VRES)return;
- const rows=[['severity','check','product_id','details']];
- VRES.issues.forEach(i=>i.items.forEach(x=>rows.push([i.sev,i.title,x.pid,x.d||''])));
+ const rows=[['severity','check','product_id','code','details']];
+ VRES.issues.forEach(i=>i.items.forEach(x=>vCsvRows(i,x).forEach(r=>rows.push(r))));
  vDownload(vCsv(rows),'feed-report.csv');
 }
 function vExportSummary(){
